@@ -1,0 +1,4 @@
+interface:
+  display_name: "Erbsland Color Term"
+  short_description: "Use the Erbsland Color Terminal library"
+  default_prompt: "Use $erbsland-color-term to integrate the Erbsland Color Terminal library and build terminal UIs with buffers, text, input, and animation."
