@@ -35,14 +35,99 @@ Use this when a failure needs structured state output:
 - Reset them in `setUp()` when required.
 - Catch all exceptions in `additionalErrorMessages()` and return a fallback string.
 
+Example:
+```cpp
+class ExampleTest final : public el::UnitTest {
+public:
+    MyTestedClass myTestedClass;
+
+    auto additionalErrorMessages() -> std::string override {
+        try {
+            std::string result;
+            result += std::format("myTestedClass.x(): {}\n", myTestedClass.x());
+            result += std::format("myTestedClass.y(): {}\n", myTestedClass.y());
+            return result;
+        } catch(...) {
+            return "Unexpected exception";
+        }
+    }
+    
+    void testFirst() {
+        myTestedClass = MyTestedClass{1, 3};
+        // ...
+    }
+};
+```
+
 ## Context Pattern for Iteration
 
 Two common approaches are:
 
-1. Wrap helper assertions with `WITH_CONTEXT(...)` inside loops, this adds the file and line in diagnostic output on failure.
-2. Use `runWithContext(SOURCE_LOCATION(), testLambda, diagnoseLambda)` for detailed diagnostics.
+1. Wrap helper assertions methods with `WITH_CONTEXT(...)`, this adds the file and line in diagnostic output on failure.
+2. Use `runWithContext(SOURCE_LOCATION(), testLambda, diagnoseLambda)` in table-driven tests for diagnostics about the failed test case.
 
-Best practice for table-driven checks and map/set verification, using helper functions, to find the error origin.
+### Test Case Driven Example
+When calling the same test helper method from multiple locations `WITH_CONTEXT` add the exact line to the test output.
+When an assert inside the test helper is failing, the full stack of nested `WITH_CONTEXT` gets visible and allows
+to locate the source and therefore the failing test values.
+```cpp
+class ExampleTest final : public el::UnitTest {
+    void requireAdd(int a, int b, int expected) {
+        REQUIRE_EQUAL(a + b, expected); 
+    }
+    void testExample() {
+        WITH_CONTEXT(requireAdd(0, 0, 0));
+        WITH_CONTEXT(requireAdd(2, 2, 4));
+        WITH_CONTEXT(requireAdd(100, -50, 50));
+        WITH_CONTEXT(requireAdd(-10, 10, 0));
+        // ...
+    }
+};
+```
+
+### Table Driven Example
+With six or more test cases, a vector with test values keeps the test extensible, readable and maintainable.
+Using `runWithContext` to get failing values in the test output.
+```cpp
+class ExampleTest final : public el::UnitTest {
+    void testExample() {
+        struct TestCase {
+            int a;
+            int b;
+            int expected;
+        };
+        const auto testCases = std::vector<TestCase>{{
+            {0, 0, 0},
+            {2, 2, 4},
+            {100, -50, 50},
+            // ...
+        }};
+        for (const auto &[a, b, expected] : testCases) {
+            runWithContext(SOURCE_LOCATION(), [&]() -> void {
+                REQUIRE_EQUAL(a + b, expected);
+            }, [&]() -> std::string {
+                return std::format("failed for a:{} b:{}", a, b);
+            });
+        }
+    }
+};
+```
+
+### Combined Test Case with Table
+Multiple test cases inside a loop require `WITH_CONTEXT` to pin-down the failed test in the loop, and `runWithContext`
+to get the failed test values.
+```cpp
+// ...
+for (const auto &[a, b, expected] : testCases) {
+    runWithContext(SOURCE_LOCATION(), [&]() -> void {
+        WITH_CONTEXT(requireFirst(a, b, expected));
+        WITH_CONTEXT(requireFirst(a, -b, -expected));
+        WITH_CONTEXT(requireFirst(-a, -b, -expected));        
+    }, [&]() -> std::string {
+        return std::format("failed for a:{} b:{}", a, b);
+    });
+}
+```
 
 ## Assertion Style
 

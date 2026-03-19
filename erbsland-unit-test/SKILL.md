@@ -13,10 +13,10 @@ Use this workflow to implement or update tests in this repository with conventio
 
 ## Quick Workflow
 
-1. Place or update tests, usually in `test/unittest/src`, `test/src` or `unitttest/src`.
+1. Place or update tests, usually in `test/unittest/src`, `test/src`, `test/<project>-unittest/src` or `unitttest/src`.
 2. Name suite files/classes `SomethingTest` and methods `testSomething`.
 3. Inherit from `el::UnitTest` or from a helper class via `UNITTEST_SUBCLASS(HelperClass)`.
-4. Use `REQUIRE_*`/`CHECK_*` macros and `WITH_CONTEXT(...)` for loops/helpers.
+4. Use `REQUIRE_*`/`CHECK_*` macros and `WITH_CONTEXT(functionCall(...))` for call stack context.
 5. Add `TESTED_TARGETS(...)` (and `TAGS(...)` or `SKIP_BY_DEFAULT()` when needed).
 6. Ensure sources are added by the relevant `CMakeLists.txt` (directly or via module subdirectories).
 7. Build and run the target test executable, then narrow failures via `name:` or `target:` filters.
@@ -43,9 +43,31 @@ Apply these rules:
 - Do not prefix helper methods with `test`.
 - Prefer small test methods with clear setup/assert sections.
 - Prefer `REQUIRE_*` for hard stop checks and `CHECK_*` only when continuing is useful.
-- For table-style loops, wrap helper calls with `WITH_CONTEXT(...)` to add context to the testoutput on failure.
-- For local diagnostics, use `runWithContext(SOURCE_LOCATION(), testFn, diagnoseFn)`.
-- For suite-wide diagnostics, override `additionalErrorMessages()` and catch all exceptions in that method.
+
+## Keep Failure Cases in Mind to Provide Meaningful Debugging Information
+
+Test should run silently on success but print as much information as possible on failure.
+Keep Humans in mind: They need context in error messages to understand what went wrong.
+
+Choose the right tools for the job:
+
+- Use `REQUIRE_EQUAL(a, b)`, `REQUIRE_NOT_EQUAL(a, b)`, ... for comparisons to print the compared values on failure.
+- Use `WITH_CONTEXT(functionCall(...))` on nested function calls to get a nice stack trace on failure.
+- Use `runWithContext(SOURCE_LOCATION(), testFn, diagnoseFn)` in loops to print the values of loop variables on failure.
+- Work with member variables in test suites to capture the last state of each test.
+- Add `additionalErrorMessages()` to print the state of the member variables on failure.
+- As last resort, use `consoleWriteLine(...)` only in an error case to provide more context.
+
+## Keep your Code Modular and Avoid Repetitive Code
+
+Prevent maintenance hell: Avoid repetitive code at all costs. Keep test code readable.
+Split large test suites into smaller ones. Hard limit: 1000 lines. Soft limit: 500 lines.
+
+Use these strategies:
+- Write `void require...Pass(...)`, `void require...Fail(...)` helper methods if testing a targed requires
+  multiple repeated steps. Wrap the `require...` calls in `WITH_CONTEXT(require...())`.
+- Introduce shared helper classes that provide common functionality for multiple tests and test suites.
+  Use `UNITTEST_SUBCLASS(HelperClass)` to inherit from them.
 
 ## Use Framework Features Correctly
 
@@ -59,7 +81,8 @@ Use metadata macros intentionally:
 
 ## Test Auto-Registration
 
-- Test suites (class ending in `..Test`) and test methods (prefix `void test...()`) are automatically scanned and registered via CMake build system. No manual registration is required.
+- Test suites (class ending in `..Test`) and test methods (prefix `void test...()`) are automatically scanned and
+  registered via CMake build system. No manual registration is required.
 
 ## Integrate With CMake
 
@@ -93,5 +116,10 @@ Read `references/common-patterns.md` before writing non-trivial tests. It captur
 
 - `UNITTEST_SUBCLASS(TestHelper)` helper inheritance.
 - Stateful diagnostics through `additionalErrorMessages()`.
-- `WITH_CONTEXT(...)` and `runWithContext(...)` in loops/map checks.
+- `WITH_CONTEXT(functionCall(...))` and `runWithContext(...)` in loops/map checks.
 - `TESTED_TARGETS(...)` usage for meaningful target filters.
+
+Starting a new test suite from scratch? Have a look at these real-world examples:
+
+Trivial target test: `references/trivial-function-test.md`
+Testing a target with many values: `references/target-with-many-values-test.md` 

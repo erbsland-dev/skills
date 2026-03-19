@@ -57,7 +57,7 @@ Non-fatal check macros:
 
 Context helpers:
 
-- `WITH_CONTEXT(expr)`
+- `WITH_CONTEXT(functionCall(x, y))`
 - `SOURCE_LOCATION()`
 
 ## Metadata Macros
