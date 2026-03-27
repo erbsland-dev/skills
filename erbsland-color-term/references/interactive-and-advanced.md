@@ -1,14 +1,14 @@
 # Interactive and Advanced Features
 
 Use this reference when building redraw loops, handling key input, reacting to resize, showing scrollable content, or
-integrating the library with custom backends and testing tools.
+integrating the library with `CursorBuffer`, custom backends, and testing tools.
 
 ## Contents
 
 - Input loop pattern
 - Switching between key and line input
 - Resize, minimum size, and crop feedback
-- Scrollable and viewport-based UIs
+- Scrollable, retained, and viewport-based UIs
 - Animated colors and reusable styles
 - Custom backends
 - Good escalation path
@@ -46,6 +46,7 @@ Guidance:
 - Handle resize every frame with `testScreenSize()`.
 - Keep the buffer persistent and only resize it.
 - Put all drawing for the frame into the buffer before `updateScreen()`.
+- Use `isInteractive()` after initialization if the same app must fall back to non-interactive output.
 
 ## Switching Between Key and Line Input
 
@@ -81,9 +82,10 @@ Use this for:
 - Displaying a centered fallback message
 - Showing that content is cropped on the right or bottom
 
-## Scrollable and Viewport-Based UIs
+## Scrollable, Retained, and Viewport-Based UIs
 
-Use `BufferView` or `BufferConstRefView` when the logical content is larger than the visible screen.
+Use `CursorBuffer` when text arrives over time and should behave like streamed terminal output. Then show only the
+interesting window through `BufferView` or `BufferConstRefView`.
 
 Typical uses:
 
@@ -91,12 +93,21 @@ Typical uses:
 - Editors
 - Minimap or preview windows
 - Large world buffers in games or simulations
+- REPL or console history
+- Dashboard panes with retained event history
 
 Pattern:
 
 ```cpp
-auto world = Buffer{Size{120, 40}};
-auto view = BufferConstRefView{world, Rectangle{8, 4, 40, 12}};
+auto history = CursorBuffer{
+    Size{120, 10},
+    CursorBuffer::OverflowMode::ExpandThenShift,
+    Size{120, 500},
+    Char{" ", Color{fg::Default, bg::Black}}};
+
+history.printParagraph("2026-03-27 09:14:22 INF Service started");
+
+auto view = BufferConstRefView{history, Rectangle{0, 0, 40, 12}};
 terminal.updateScreen(view, settings);
 ```
 
@@ -111,6 +122,7 @@ Reach for these higher-level features when a plain static panel is not enough:
 - `TextAnimation` for animated titles
 - `FrameDrawOptions` for animated or reusable border styles
 - `BitmapDrawOptions` for animated pixel graphics
+- `CharStyle` for reusable headings, labels, and emphasis that combine color with ANSI attributes
 
 Keep animation state in your app model, usually as an incrementing cycle counter. Pass that counter into `drawText(...)`,
 `drawFrame(...)`, or `drawBitmap(...)` instead of storing timing logic inside rendering helpers.
@@ -127,6 +139,7 @@ Implement backend hooks for:
 
 - Platform initialization and restoration
 - Color and cursor capability reporting
+- Supported character attributes
 - Screen size detection
 - Cursor movement
 - Text emission and flushing
@@ -139,9 +152,11 @@ Most applications should stay on the built-in backend.
 Default to this progression:
 
 1. Direct `printLine()` output
-2. `Buffer` plus `updateScreen()`
-3. `Text`, frames, rectangles, and colors
-4. Key input and resize-aware redraw loop
-5. `BufferView` for scrolling
-6. `Bitmap` and advanced drawing styles
-7. Custom backend only if integration requirements demand it
+2. Shared helpers that take `CursorWriter &`
+3. `CursorBuffer` for retained terminal-style output
+4. `Buffer` plus `updateScreen()`
+5. `Text`, frames, rectangles, and colors
+6. Key input and resize-aware redraw loop
+7. `BufferView` for scrolling
+8. `Bitmap` and advanced drawing styles
+9. Custom backend only if integration requirements demand it

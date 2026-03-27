@@ -1,14 +1,15 @@
 # Rendering and Layout
 
 Use this reference when rendering screens with `Buffer`, laying out panels with `Rectangle`, styling content with
-`Color` and `String`, or adding text, frames, fonts, and bitmaps.
+`Color`, `CharStyle`, and `String`, or adding text, frames, fonts, bitmaps, and composed sub-buffers.
 
 ## Contents
 
 - Compose the screen in memory
 - Prefer geometry helpers over manual coordinates
 - Use the right text type
-- Use color semantics correctly
+- Use color and style semantics correctly
+- Compose buffers deliberately
 - Frames, panels, and decorative drawing
 - Fonts, animation, and bitmap rendering
 - Useful convenience APIs
@@ -48,7 +49,7 @@ Use `gridCells()` for dashboards or menu grids instead of hand-splitting coordin
 ## Use the Right Text Type
 
 - Use plain string overloads when one color/alignment is enough.
-- Use `String` when different characters need different colors.
+- Use `String` when different characters need different colors or attributes.
 - Use `Text` when content also needs a rectangle, alignment, font, animation, or paragraph spacing.
 - Use `Char` when working at single-cell precision.
 
@@ -80,11 +81,14 @@ Visible width rules:
 - `String::displayWidth()` counts terminal cells.
 - Use `displayWidth()` when alignment or truncation depends on what the user actually sees.
 
-## Use Color Semantics Correctly
+## Use Color and Style Semantics Correctly
 
 - Use `Default` to reset a foreground/background component to the terminal default.
 - Use `Inherited` to keep the component from what is already below the current layer.
-- Use `overlayWith()` or character recoloring helpers to derive related styles without rebuilding everything.
+- Use `CharAttributes` for bold, underline, italic, reverse, and related ANSI attributes.
+- Use `CharStyle` when color and attributes belong together as a reusable style fragment.
+- Use `withOverlay()` / `withBase()` or character recoloring helpers to derive related styles without rebuilding
+  everything.
 
 Typical examples:
 
@@ -92,7 +96,36 @@ Typical examples:
 auto base = Color{fg::BrightWhite, bg::Blue};
 auto warning = base.overlayWith(Color{fg::BrightYellow, bg::Red});
 auto recolored = Char{U'X', fg::Green, bg::Blue}.withColorOverlay(Color{fg::BrightWhite, bg::Inherited});
+
+auto emphasis = CharAttributes{};
+emphasis.setBold(true);
+emphasis.setUnderline(true);
+auto headingStyle = CharStyle{Color{fg::BrightWhite, bg::Blue}, emphasis};
+auto mutedHeading = headingStyle.withOverlay(CharStyle{Color{fg::BrightBlack, bg::Inherited}});
 ```
+
+Use `CharAttributes::reset()` when a later fragment must explicitly clear attributes that were turned on earlier.
+
+## Compose Buffers Deliberately
+
+For large screens, treat sub-buffers as reusable render artifacts.
+
+- Use `drawBuffer(view, rect)` for straightforward placement into a target rectangle.
+- Use `BufferDrawOptions` when placement needs source cropping, target alignment, color overwrite control, or character
+  combination rules.
+- Use `BufferView` / `BufferConstRefView` when the logical content is larger than the visible panel.
+
+Pattern:
+
+```cpp
+auto options = BufferDrawOptions{};
+options.setTargetRect(panelRect);
+options.setSourceRect(Rectangle{0, topRow, source.width(), panelRect.height()});
+options.setOverwriteColors(false);
+target.drawBuffer(source, options);
+```
+
+This is the right tool when a screen mixes pre-rendered content, clipped history panes, or composed character artwork.
 
 ## Frames, Panels, and Decorative Drawing
 
@@ -128,3 +161,4 @@ Use `BitmapDrawOptions` to control color sequences, scale mode, and neighbor-awa
 - `Buffer::fromLinesInString(...)` for help panes or static text blocks
 - `ReadableBuffer::countDifferencesTo(...)` for tests or frame analysis
 - `ReadableBuffer::toMask(...)` when rendered cells need to become a bitmap mask
+- `String::fromLines(...)` when a styled multi-line fragment is easier to build before rendering

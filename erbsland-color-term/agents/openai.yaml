@@ -1,7 +1,7 @@
 interface:
   display_name: "Erbsland Color Term"
   short_description: "Use the Erbsland Color Terminal library"
-  default_prompt: "Use $erbsland-color-term to integrate the Erbsland Color Terminal library and build terminal UIs with buffers, text, input, and animation."
+  default_prompt: "Use $erbsland-color-term to integrate the Erbsland Color Terminal library and build direct terminal output, cursor-oriented helpers, scrollback buffers, and full-screen UIs with Terminal, CursorWriter, Buffer, CursorBuffer, text, input, and animation."
   icon_small: "./assets/logo.png"
   icon_large: "./assets/logo.png"
   brand_color: "#1e2423"
