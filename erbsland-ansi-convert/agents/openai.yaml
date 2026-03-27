@@ -1,0 +1,7 @@
+interface:
+  display_name: "Erbsland ANSI Convert"
+  short_description: "Convert captured ANSI terminal output for documentation"
+  default_prompt: "Use $erbsland-ansi-convert to capture complex terminal output and convert it into static ANSI, HTML, or plain text for documentation."
+  icon_small: "./assets/logo.png"
+  icon_large: "./assets/logo.png"
+  brand_color: "#1e2423"
