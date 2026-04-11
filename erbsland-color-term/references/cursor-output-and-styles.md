@@ -131,6 +131,13 @@ Keep the `fillChar` background aligned with the intended panel background so new
 `printParagraph()` is now part of the shared cursor-output path. Use it when the same wrapped text should work in a
 real terminal and inside a retained buffer.
 
+Important background rule:
+
+- `printParagraph()` must materialize indentation and trailing padding as spaces.
+- If `ParagraphBackgroundMode` does not replace those cells with the wrapped-text background, they use the current
+  writer background.
+- Set the writer color first when the paragraph should blend into a panel or log background.
+
 Pattern:
 
 ```cpp
