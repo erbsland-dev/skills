@@ -27,11 +27,11 @@ public:
 
 ## Diagnostics Pattern
 
-Store tested state in members variables and override `additionalErrorMessages()`.
+Store tested state in member variables and override `additionalErrorMessages()`.
 
 Use this when a failure needs structured state output:
 
-- Keep primary tested objects as members.
+- Keep primary-tested objects as members.
 - Reset them in `setUp()` when required.
 - Catch all exceptions in `additionalErrorMessages()` and return a fallback string.
 

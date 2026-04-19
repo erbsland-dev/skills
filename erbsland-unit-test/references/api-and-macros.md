@@ -77,6 +77,18 @@ Use `TESTED_TARGETS(...)` consistently; it drives `target:<target>` filters in C
 - `readDataLines(relativePath, maximumSize=10000000)`
 
 Use these with CMake `erbsland_unittest(... COPY_TEST_DATA ... ENABLE_DATA_DEPS)`.
+`readDataText()` is the default helper for fixture text; it normalizes copied text data to UTF-8 with `\n` line endings.
+
+## Text Helpers (`erbsland::unittest::th`)
+
+- `characterCount(text)` for Unicode-aware character counts.
+- `toConsoleSafeString(text, maxLength)` for readable failure output.
+- `toStdString(text)` / `toStdU32String(text)` to normalize text across string types.
+- `stdStringFromHex(...)`, `stdU8StringFromHex(...)`, `stdU16StringFromHex(...)`, `stdU32StringFromHex(...)`, `stdWStringFromHex(...)` for literal byte/text fixtures.
+- `invalidUtf8(error, prefix?, suffix?)` and `allUtf8Errors` for UTF-8 validator tests.
+- `splitLineViews(text)` / `splitLines(text)` for line-wise assertions.
+- `requireEqualLines(test, actual, expected)` / `REQUIRE_EQUAL_LINES(actual, expected)` for wildcard-friendly multi-line comparisons.
+- `requireValidUtf8(test, text)` / `REQUIRE_VALID_UTF8(text)` for UTF-8 validation.
 
 ## CLI Filters and Options
 
