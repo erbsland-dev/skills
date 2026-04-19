@@ -1,16 +1,7 @@
 # Integration and Lifecycle
 
-Use this reference when adding the library to a project, choosing between direct output, shared cursor output, retained
-buffers, and full-screen rendering, or setting up the `Terminal` lifecycle.
-
-## Contents
-
-- Build integration
-- Choose the output style
-- Terminal lifecycle rules
-- Shared cursor output pattern
-- Direct terminal output pattern
-- Full-screen pattern
+Use this reference when adding the library to a project, choosing includes, deciding between direct output and
+higher-level APIs, or setting up the `Terminal` lifecycle correctly.
 
 ## Build Integration
 
@@ -39,157 +30,71 @@ If the library is installed as a package instead, use:
 
 ```cmake
 find_package(erbsland-color-term REQUIRED)
-
 target_link_libraries(my-app PRIVATE ErbslandDEV::erbsland-color-term)
 ```
 
-Notes:
+Current repository guidance for the `1.8.0` tree is `CMake 3.28+` and `C++20`. Prefer the checked-out repository's
+current top-level requirement over older snippets copied from stale docs.
 
-- The cloned library currently uses CMake 3.28 and C++20.
-- Use `<erbsland/cterm/all.hpp>` when moving quickly or exploring.
-- Narrow includes later only if the project prefers explicit header lists.
+## Include Strategy
 
-## Choose the Output Style
+- Use `<erbsland/cterm/all.hpp>` for the core terminal, buffer, text, and drawing APIs.
+- Add `<erbsland/cterm/text/all.hpp>` when using the rich-text and HTML module.
+- Add `<erbsland/cterm/ui/all.hpp>` when using the beta UI framework.
+- Generated top-level wrappers such as `<erbsland/all_cterm_text.hpp>` and `<erbsland/all_cterm_ui.hpp>` also exist.
+  Use them only if the surrounding project already prefers that include style.
 
-Use direct terminal writes for:
+## Pick The Workflow First
 
-- Short-lived tools
-- Status lines and diagnostics
-- Prompts or line-oriented interactions
-- Simple colored output that does not redraw a whole scene
+- Direct `Terminal` output:
+  short-lived tools, prompts, diagnostics, colored CLI output
+- `CursorWriter` helpers:
+  shared text output that should work on `Terminal` and `CursorBuffer`
+- `CursorBuffer`:
+  retained logs, consoles, scrollback panes, REPL history
+- `Buffer` plus `updateScreen()`:
+  manual redraw UIs, dashboards, composed layouts, animation
+- `text::HtmlRenderer`:
+  document-like output, rendered help pages, HTML fragments, structured prose
+- `ui::Application`:
+  event-driven TUIs with pages, surfaces, focus, key bindings, timers, workers
 
-Use `CursorWriter` helpers for:
+## Terminal Lifecycle
 
-- Output code that should work on both `Terminal` and `CursorBuffer`
-- Shared banners, status lines, paragraphs, or help blocks
-- Reusable formatting that should not depend on a concrete backend
-
-Use `CursorBuffer` plus a view for:
-
-- Retained log history
-- REPL or console scrollback
-- Streaming text that later needs clipping, scrolling, or re-rendering
-
-Use `Buffer` plus `updateScreen()` for:
-
-- Full-screen apps
-- Redraw loops
-- Resizable layouts
-- Multi-panel dashboards
-- Animations
-- Anything using frames, wrapped text, views, or screen diffing
-
-## Terminal Lifecycle Rules
-
-- Create one `Terminal` for the whole app lifetime.
-- Call `initializeScreen()` once when the app starts.
-- Call `restoreScreen()` once just before exit.
-- Call `isInteractive()` after initialization when the process may run without a real terminal.
-- Keep `OutputMode::FullControl` unless the app truly needs plain text only.
-- Keep the default safe margin unless the app explicitly needs the full detected size and newline-free updates.
-- If the app has multiple return paths or exception-heavy flow, add a small local RAII wrapper so normal unwinding still
-  reaches `restoreScreen()`.
-
-The library restores terminal state automatically for interruptions such as signals between initialization and restore,
-but agents should still structure code so normal exits always call `restoreScreen()`.
-
-## Shared Cursor Output Pattern
-
-Use this when the same helper should target a terminal and an in-memory retained buffer:
+Prefer `TerminalSession` for normal apps and tools:
 
 ```cpp
 #include <erbsland/cterm/all.hpp>
 
 using namespace erbsland::cterm;
 
-auto writeStatus(CursorWriter &writer, std::string_view label, std::string_view value) -> void {
-    auto emphasis = CharAttributes{};
-    emphasis.setBold(true);
-
-    writer.printLine(
-        CharStyle{Color{fg::BrightWhite, bg::Inherited}, emphasis},
-        label,
-        CharAttributes::reset(),
-        fg::BrightBlack,
-        ": ",
-        fg::BrightGreen,
-        value);
-}
-```
-
-This is the 1.7 default for reusable output logic.
-
-## Direct Terminal Output Pattern
-
-Use this for simple colored output:
-
-```cpp
-#include <erbsland/cterm/Terminal.hpp>
-
-using namespace erbsland::cterm;
-
 auto main() -> int {
     auto terminal = Terminal{Size{80, 25}};
-    terminal.initializeScreen();
+    auto session = TerminalSession{terminal};
 
     if (!terminal.isInteractive()) {
         terminal.setOutputMode(Terminal::OutputMode::Text);
     }
 
-    terminal.printLine(
-        bg::Blue,
-        fg::BrightWhite,
-        " Signal Board ",
-        Color::reset(),
-        " ",
-        fg::BrightBlack,
-        "Direct output with readable color arguments.");
-    terminal.printLine(fg::BrightGreen, "Status", fg::BrightBlack, ": online");
-    terminal.setDefaultColor();
+    terminal.printLine(fg::BrightGreen, "Ready.");
     terminal.flush();
-
-    terminal.restoreScreen();
     return 0;
 }
 ```
 
-Guidance:
+Rules:
 
-- Prefer `printLine()` over manual ANSI sequences.
-- Use `fg::...`, `bg::...`, and `Color` objects instead of hard-coded escape codes.
-- Use a `CursorWriter &` helper when this output may later be reused in a `CursorBuffer`.
-- Use `CharAttributes::reset()` after emphasized fragments when later text should be plain again.
-- Call `setDefaultColor()` before leaving the output region if later output should not inherit styling.
-- Rely on line buffering for tidy incremental writes, then `flush()` when needed.
+- Create one long-lived `Terminal` per app.
+- Prefer `TerminalSession` over manual `initializeScreen()` and `restoreScreen()` pairing.
+- Call `isInteractive()` after initialization when output may be redirected.
+- Keep `OutputMode::FullControl` for cursor or screen control. Use `OutputMode::Text` only for plain text fallback.
+- If the host already manages signal handling or terminal restoration, look at `TerminalFlag` and `TerminalFlags`
+  before bolting on custom cleanup logic.
+- If you use `ui::Application`, let the framework manage the terminal lifecycle instead of wrapping it yourself.
 
-## Full-Screen Pattern
+## When Manual Lifecycle Control Still Makes Sense
 
-Use this for redraw-based apps:
+Use explicit `initializeScreen()` and `restoreScreen()` only when the task needs a very precise control window around
+interactive setup and teardown, such as specialized host integration or tests that intentionally exercise that boundary.
 
-```cpp
-auto terminal = Terminal{Size{96, 28}};
-auto buffer = Buffer{terminal.size()};
-auto settings = UpdateSettings{};
-
-terminal.initializeScreen();
-terminal.setRefreshMode(Terminal::RefreshMode::Overwrite);
-settings.setMinimumSize(Size{40, 12});
-
-for (;;) {
-    terminal.testScreenSize();
-    buffer.resize(terminal.size());
-    buffer.fill(Char{" ", Color{fg::Default, bg::Black}});
-    // ... draw to buffer ...
-    terminal.updateScreen(buffer, settings);
-}
-```
-
-Guidance:
-
-- `Overwrite` is a good default for redraw loops.
-- Use `UpdateSettings` for minimum-size handling, crop marks, and alternate-screen behavior.
-- Keep a separate `CursorBuffer` only when the app needs retained streamed text in addition to the composed screen
-  buffer.
-- Disable `settings.setSwitchToAlternateBuffer(false)` only when the rendered screen should remain visible in the
-  normal terminal history.
-- Keep back-buffer behavior enabled when diff-based updates are useful; the terminal already optimizes redraws.
+For manual redraw loops, continue with `rendering-and-layout.md` or `interactive-and-advanced.md`.

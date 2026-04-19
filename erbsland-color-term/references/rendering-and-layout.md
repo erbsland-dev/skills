@@ -1,119 +1,78 @@
 # Rendering and Layout
 
-Use this reference when rendering screens with `Buffer`, laying out panels with `Rectangle`, styling content with
-`Color`, `CharStyle`, and `String`, or adding text, frames, fonts, bitmaps, and composed sub-buffers.
+Use this reference when composing redraw-based screens with `Buffer`, laying out panels with geometry helpers,
+rendering `Text`, or drawing frames, fonts, bitmaps, and composed sub-buffers.
 
-## Contents
+If the task is really an event-driven surface tree, stop here and read `ui-framework.md` instead.
 
-- Compose the screen in memory
-- Prefer geometry helpers over manual coordinates
-- Use the right text type
-- Use color and style semantics correctly
-- Compose buffers deliberately
-- Frames, panels, and decorative drawing
-- Fonts, animation, and bitmap rendering
-- Useful convenience APIs
+## Manual Redraw Workflow
 
-## Compose the Screen in Memory
+For non-trivial screen updates, treat the screen as a rendered frame:
 
-For non-trivial UIs, treat the screen as a rendered frame:
+1. Keep one persistent `Buffer`.
+2. Resize it to the terminal size when needed.
+3. Clear it with `fill(...)`.
+4. Derive rectangles from the main canvas.
+5. Draw text, frames, bitmaps, and sub-buffers into the buffer.
+6. Call `terminal.updateScreen(buffer, settings)`.
 
-1. Resize the persistent `Buffer` to `terminal.size()`.
-2. Clear it with `fill(...)`.
-3. Derive rectangles from a main canvas.
-4. Draw text, frames, and other elements into the buffer.
-5. Call `terminal.updateScreen(buffer, settings)`.
+Pattern:
 
-This is the library's intended workflow and scales far better than manual cursor movement.
+```cpp
+auto terminal = Terminal{Size{96, 28}};
+auto buffer = Buffer{terminal.size()};
+auto settings = UpdateSettings{};
 
-## Prefer Geometry Helpers Over Manual Coordinates
+for (;;) {
+    terminal.testScreenSize();
+    buffer.resize(terminal.size());
+    buffer.fill(Char{" ", Color{fg::Default, bg::Black}});
 
-Use these types first:
+    // Draw the frame into buffer.
 
-- `Rectangle` for canvas areas and derived regions
+    terminal.updateScreen(buffer, settings);
+    terminal.flush();
+}
+```
+
+## Geometry First
+
+Prefer geometry helpers over manual cursor math:
+
+- `Rectangle` for regions and derived areas
 - `Margins` for padding and inset calculations
-- `Anchor` and `Alignment` for placement without cursor math
+- `Anchor` and `Alignment` for placement without coordinate juggling
 - `Size` and `Position` for explicit dimensions and coordinates
 
 Common patterns:
 
 ```cpp
-const auto canvas = Rectangle{0, 0, buffer.size().width(), buffer.size().height()}; // or just `buffer.rect()`
+const auto canvas = buffer.rect();
 const auto titleRect = canvas.subRectangle(Anchor::TopCenter, Size{0, 6}, Margins{1, 2, 0, 2});
 const auto bodyRect = canvas.insetBy(Margins{7, 2, 2, 2});
 const auto cells = bodyRect.gridCells(2, 2, 2, 1);
 ```
 
-Use `gridCells()` for dashboards or menu grids instead of hand-splitting coordinates.
+## Use The Right Text Type
 
-## Use the Right Text Type
+- Plain string overloads:
+  one style, simple output
+- `String`:
+  per-character colors or attributes, width-aware text handling
+- `Text`:
+  content that also needs a rectangle, alignment, font, animation, or paragraph settings
+- `Char`:
+  single-cell precision
 
-- Use plain string overloads when one color/alignment is enough.
-- Use `String` when different characters need different colors or attributes.
-- Use `Text` when content also needs a rectangle, alignment, font, animation, or paragraph spacing.
-- Use `Char` when working at single-cell precision.
+When visible width matters, use `String::displayWidth()`, not `String::size()`.
 
-Examples:
+## Resizing And Composition
 
-```cpp
-auto footer = String{};
-footer.append(
-    bg::BrightBlack,
-    fg::BrightYellow,
-    "[Q]",
-    fg::BrightWhite,
-    " quit");
+Prefer explicit APIs over ad-hoc resize logic:
 
-auto title = Text{String{"COLOR TERM"}, titleRect, Alignment::Center};
-title.setFont(Font::defaultAscii());
-title.setColorSequence(ColorSequence{
-    {Color{fg::BrightBlue, bg::Black}, 4},
-    {Color{fg::BrightCyan, bg::Black}, 3},
-    {Color{fg::BrightMagenta, bg::Black}, 2},
-    {Color{fg::BrightYellow, bg::Black}, 3},
-});
-title.setAnimation(TextAnimation::ColorDiagonal);
-```
-
-Visible width rules:
-
-- `String::size()` counts stored terminal characters.
-- `String::displayWidth()` counts terminal cells.
-- Use `displayWidth()` when alignment or truncation depends on what the user actually sees.
-
-## Use Color and Style Semantics Correctly
-
-- Use `Default` to reset a foreground/background component to the terminal default.
-- Use `Inherited` to keep the component from what is already below the current layer.
-- Use `CharAttributes` for bold, underline, italic, reverse, and related ANSI attributes.
-- Use `CharStyle` when color and attributes belong together as a reusable style fragment.
-- Use `withOverlay()` / `withBase()` or character recoloring helpers to derive related styles without rebuilding
-  everything.
-
-Typical examples:
-
-```cpp
-auto base = Color{fg::BrightWhite, bg::Blue};
-auto warning = base.overlayWith(Color{fg::BrightYellow, bg::Red});
-auto recolored = Char{U'X', fg::Green, bg::Blue}.withColorOverlay(Color{fg::BrightWhite, bg::Inherited});
-
-auto emphasis = CharAttributes{};
-emphasis.setBold(true);
-emphasis.setUnderline(true);
-auto headingStyle = CharStyle{Color{fg::BrightWhite, bg::Blue}, emphasis};
-auto mutedHeading = headingStyle.withOverlay(CharStyle{Color{fg::BrightBlack, bg::Inherited}});
-```
-
-Use `CharAttributes::reset()` when a later fragment must explicitly clear attributes that were turned on earlier.
-
-## Compose Buffers Deliberately
-
-For large screens, treat sub-buffers as reusable render artifacts.
-
-- Use `drawBuffer(view, rect)` for straightforward placement into a target rectangle.
-- Use `BufferDrawOptions` when placement needs source cropping, target alignment, color overwrite control, or character
-  combination rules.
-- Use `BufferView` / `BufferConstRefView` when the logical content is larger than the visible panel.
+- use `BufferResizeMode` when content-preserving resize behavior matters
+- use `BufferView` or `BufferConstRefView` when logical content is larger than the visible panel
+- use `BufferDrawOptions` when placement needs cropping, alignment, or color overwrite control
 
 Pattern:
 
@@ -125,40 +84,22 @@ options.setOverwriteColors(false);
 target.drawBuffer(source, options);
 ```
 
-This is the right tool when a screen mixes pre-rendered content, clipped history panes, or composed character artwork.
+## Frames, Fonts, And Bitmaps
 
-## Frames, Panels, and Decorative Drawing
+Start with the highest-level drawing helper that fits:
 
-Start simple:
+- `drawFilledFrame(...)` or `FrameStyle` for most panel borders
+- `FrameDrawOptions` for reusable or animated border styles
+- `Text` plus `Font::defaultAscii()` for large ASCII headings
+- `ColorSequence` and `TextAnimation` for animated text
+- `Bitmap` and `drawBitmap(...)` for pixel-style visuals
+- `BitmapDrawOptions` when bitmap color or scaling behavior needs control
 
-- `drawFilledFrame(...)` for most panels
-- `FrameStyle` for built-in box styles
-- `drawText(...)` inside inset rectangles for titles and body copy
+Use `CharCombinationStyle` only when overlapping frame or block-art composition really needs it.
 
-Reach for the advanced drawing APIs only when needed:
+## Good Defaults
 
-- `FrameDrawOptions` for reusable animated border styles and fill behavior
-- `CharCombinationStyle` when intersecting frames must combine cleanly
-- `Tile9Style` when a border or fill should stretch from corner/edge/center tiles
-
-## Fonts, Animation, and Bitmap Rendering
-
-Use `Font::defaultAscii()` for large ASCII titles. Because fonts plug into `Text`, alignment and animation still work.
-
-Use `ColorSequence` plus `TextAnimation` for animated titles or highlights.
-
-Use `Bitmap` and `drawBitmap(...)` when you need:
-
-- Procedural icons
-- Pixel masks
-- Half-block or full-block rendering
-- Line-art or circuit-style visuals driven by a bitmap
-
-Use `BitmapDrawOptions` to control color sequences, scale mode, and neighbor-aware rendering.
-
-## Useful Convenience APIs
-
-- `Buffer::fromLinesInString(...)` for help panes or static text blocks
-- `ReadableBuffer::countDifferencesTo(...)` for tests or frame analysis
-- `ReadableBuffer::toMask(...)` when rendered cells need to become a bitmap mask
-- `String::fromLines(...)` when a styled multi-line fragment is easier to build before rendering
+- Keep one persistent `Buffer` instead of recreating it every frame.
+- Resize the buffer and redraw the full frame instead of mixing ad-hoc cursor writes into a redraw workflow.
+- Use `UpdateSettings` for minimum-size handling and crop feedback instead of inventing custom too-small rendering.
+- Put scrollback and streaming text in `CursorBuffer`, then render it into the main screen through a view.

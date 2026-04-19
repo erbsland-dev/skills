@@ -1,49 +1,37 @@
 # Cursor Output and Styles
 
 Use this reference when writing reusable terminal-style output, sharing helpers between `Terminal` and `CursorBuffer`,
-working with `CharAttributes` and `CharStyle`, or building retained scrollback/history buffers.
+working with `CharAttributes` and `CharStyle`, or building retained scrollback and history buffers.
 
-## Contents
+## Default Pattern
 
-- Shared `CursorWriter` workflow
-- Mixed print arguments and style state
-- `CharAttributes` and `CharStyle`
-- `CursorBuffer` for retained output
-- Paragraphs and scrollback
-
-## Shared `CursorWriter` Workflow
-
-In version 1.7, `Terminal` and `CursorBuffer` both implement `CursorWriter`.
+In `1.7+`, both `Terminal` and `CursorBuffer` implement `CursorWriter`.
 
 Use that as the default abstraction when:
 
-- The same output helper should write to a live terminal and an in-memory buffer
-- You want terminal-style cursor movement without tying helpers to `Terminal`
-- Paragraph printing should work the same for immediate output and retained history
+- the same helper should write to a live terminal and an in-memory buffer
+- you want terminal-style cursor movement without tying helpers to `Terminal`
+- paragraph rendering should work the same for immediate output and retained history
 
 Pattern:
 
 ```cpp
-auto writeBanner(CursorWriter &writer, std::string_view title) -> void {
+auto writeStatus(CursorWriter &writer, std::string_view label, std::string_view value) -> void {
     auto emphasis = CharAttributes{};
     emphasis.setBold(true);
-    emphasis.setUnderline(true);
 
     writer.printLine(
         CharStyle{Color{fg::BrightWhite, bg::Inherited}, emphasis},
-        title,
-        CharAttributes::reset());
+        label,
+        CharAttributes::reset(),
+        fg::BrightBlack,
+        ": ",
+        fg::BrightGreen,
+        value);
 }
 ```
 
-Then call it from either target:
-
-```cpp
-writeBanner(terminal, "Service Console");
-writeBanner(logBuffer, "Captured Output");
-```
-
-## Mixed Print Arguments and Style State
+## Mixed Print Arguments
 
 `print()` and `printLine()` accept a mixed stream of:
 
@@ -52,36 +40,27 @@ writeBanner(logBuffer, "Captured Output");
 - `CharStyle`
 - `Char`
 - `String`
-- Plain text
+- plain text
 
 As arguments are processed, the active style stays on the writer until it is changed again.
 
 Guidance:
 
-- Use `setDefaultColor()` to reset colors to the terminal defaults.
-- Use `CharAttributes::reset()` to explicitly disable all attributes.
-- Use `style()` and `setStyle()` when reading or updating the combined color-plus-attributes state is clearer than
-  separate calls.
-- Use `Inherited` color components when a helper should preserve the active or underlying color.
+- Use `setDefaultColor()` when later output should return to the terminal default colors.
+- Use `CharAttributes::reset()` only when later text must explicitly disable bold, underline, and similar flags.
+- Use `Inherited` when a helper should preserve the current or underlying color component.
+- Use `Default` when a fragment must reset to the terminal default instead of preserving context.
 
-## `CharAttributes` and `CharStyle`
+## `CharAttributes` And `CharStyle`
 
-Use `CharAttributes` when you need explicit ANSI attribute state:
+Use `CharAttributes` when you need explicit ANSI attribute state such as bold, italic, underline, reverse, or
+strikethrough.
 
-- `Bold`
-- `Dim`
-- `Italic`
-- `Underline`
-- `Blink`
-- `Reverse`
-- `Hidden`
-- `Strikethrough`
+Semantics that matter:
 
-Important semantics:
-
-- Unspecified flags inherit from the surrounding writer or base style.
-- `CharAttributes::reset()` means all flags are explicitly disabled.
-- `resolvedWith(...)` overlays explicitly specified flags onto a base state.
+- unspecified flags inherit from the surrounding writer or base style
+- `CharAttributes::reset()` means all flags are explicitly disabled
+- `resolvedWith(...)` overlays explicitly specified flags onto a base state
 
 Use `CharStyle` when color and attributes belong together as one reusable value:
 
@@ -89,25 +68,21 @@ Use `CharStyle` when color and attributes belong together as one reusable value:
 auto emphasis = CharAttributes{};
 emphasis.setBold(true);
 
-const auto headingStyle = CharStyle{Color{fg::BrightWhite, bg::Blue}, emphasis};
-const auto mutedOverlay = CharStyle{Color{fg::BrightBlack, bg::Inherited}};
-const auto mutedHeading = headingStyle.withOverlay(mutedOverlay);
+const auto heading = CharStyle{Color{fg::BrightWhite, bg::Blue}, emphasis};
+const auto muted = heading.withOverlay(CharStyle{Color{fg::BrightBlack, bg::Inherited}});
 ```
 
-Prefer `CharStyle` for theme fragments, headings, reusable labels, and helper APIs that would otherwise pass color and
-attributes separately.
+## `CursorBuffer` For Retained Output
 
-## `CursorBuffer` for Retained Output
+Use `CursorBuffer` when output should behave like streamed terminal text but remain available for:
 
-Use `CursorBuffer` when output should behave like terminal text, but remain available for:
-
-- Scrollback panes
-- Log viewers
+- scrollback panes
+- log viewers
 - REPL history
-- Text consoles
-- Buffered help or diagnostics panels
+- buffered diagnostics panels
+- document buffers that later need viewport rendering
 
-Recommended constructor shape for log-style history:
+Typical constructor shape:
 
 ```cpp
 auto history = CursorBuffer{
@@ -117,38 +92,35 @@ auto history = CursorBuffer{
     Char{" ", Color{fg::Default, bg::Black}}};
 ```
 
-Overflow mode guidance:
+Overflow guidance:
 
-- `Shift` for fixed-height visible consoles that should scroll upward.
-- `Wrap` for ring-buffer style behavior.
-- `ExpandThenShift` for growing history with a cap.
-- `ExpandThenWrap` for growing history that later becomes cyclic.
+- `Shift` for fixed-height consoles that should scroll upward
+- `Wrap` for ring-buffer style behavior
+- `ExpandThenShift` for growing history with an upper bound
+- `ExpandThenWrap` for growing history that later becomes cyclic
 
-Keep the `fillChar` background aligned with the intended panel background so newly exposed rows remain visually stable.
+## Paragraphs And Width-Aware Text
 
-## Paragraphs and Scrollback
+`CursorWriter::printParagraph()` is the shared paragraph path for `Terminal` and `CursorBuffer`.
 
-`printParagraph()` is now part of the shared cursor-output path. Use it when the same wrapped text should work in a
-real terminal and inside a retained buffer.
+Use it when wrapped text should behave the same in a real terminal and inside retained history.
 
-Important background rule:
+Helpful support types in `1.8.0`:
 
-- `printParagraph()` must materialize indentation and trailing padding as spaces.
-- If `ParagraphBackgroundMode` does not replace those cells with the wrapped-text background, they use the current
-  writer background.
-- Set the writer color first when the paragraph should blend into a panel or log background.
+- `ParagraphOptions` for wrapping, spacing, markers, and fallback behavior
+- `ParagraphIndents` when indentation settings should be shared or reused
+- `FastCharSet` when separator or grouping character sets are performance-sensitive and reused often
 
-Pattern:
+Background rule:
 
-```cpp
-auto options = ParagraphOptions::defaultOptions();
-options.setMaximumLineWraps(2);
+- paragraph indentation and trailing fill become real cells
+- if `ParagraphBackgroundMode` does not replace those cells, they use the writer's current background
+- set the writer color first when the paragraph must blend into a panel or log background
 
-history.setColor(Color{fg::BrightYellow, bg::Black});
-history.printParagraph("Cache refresh is still pending", options);
-```
+## Viewports
 
-To display only part of the retained history, render it through a view:
+To display only part of a retained buffer, render it through `BufferView` or `BufferConstRefView` instead of copying
+rows around:
 
 ```cpp
 const auto top = std::max(0, history.size().height() - 20);
@@ -157,5 +129,4 @@ terminal.updateScreen(view);
 ```
 
 When explicit cursor positioning matters, use `moveCursor(...)` with `MoveMode::Absolute` or `MoveMode::Relative`.
-Remember that `CursorBuffer` follows VT100-style wrapping behavior, including the pending-wrap behavior at the last
-column.
+Remember that `CursorBuffer` follows VT100-style wrapping, including the pending-wrap behavior at the last column.
