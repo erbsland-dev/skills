@@ -13,10 +13,12 @@ metadata:
 - **Braces**: Opening brace stays on the same line
 - **Spacing and Separation**:
   - Use empty lines to separate logical blocks
-  - One empty line between function definitions if they span >3 lines or have documentation
-  - Two empty lines around ``struct``, ``class``, or ``enum`` definitions
-  - Two empty lines around function implementations in ``.cpp`` files
-- **.clang-format**: Often preconfigured in project root. Result is accepted, manual formating is preferred. 
+  - No empty lines around function definitions in headers. Separated by a `/// API doc`.
+  - One empty line around ``struct``, ``class``, or ``enum`` definitions
+  - One empty line around function implementations in ``.cpp`` files
+- **.clang-format**: If exist in project root, the result is accepted. Still some manual adjustments may be necessary.
+- **pre_commit.py**: If exist (in `utilities` or `tools`), authorative but slow tool
+  for formatting before any commit (called via `python3 utilities/pre_commit.py`).
 
 ## Naming Conventions
 - **Classes**: PascalCase (e.g., ``Controller``, ``TestClassBase``)
@@ -28,16 +30,16 @@ metadata:
 
 ## File Organization
 - **Copyright Block**: Two line comments `// Copyright ...` at the begin of the file.
-- **Header Guards**: Use ``#pragma once`` directly after copyright block.
+- **Header Guards**: Use ``#pragma once`` directly after copyright block (no empty line!).
 - **Include Order** (sort each block individually, separate blocks with empty lines):
   1. Corresponding header (only in ``.cpp``) — *followed by two empty lines*, or two empty lines after `#pragma once`.
   2. Local includes: ``#include "Example.hpp"``
   3. Local subdirectory includes: ``#include "sub/sub/Example.hpp"``
-  4. Local adjoint includes: ``#include "../Example.hpp"`` (exact one ..)
-  4. Local relative includes: ``#include "../../Example.hpp"`` (two and more ..)
-  5. Project libraries: ``#include <erbsland/unittest/UnitTest.hpp>``
-  6. Standard library headers: ``#include <vector>``
-  7. *Two* empty lines after the include block
+  4. Local adjoint includes: ``#include "../Example.hpp"`` (exact one `..`)
+  5. Local relative includes: ``#include "../../Example.hpp"`` (two and more `..`)
+  6. Project libraries: ``#include <erbsland/unittest/UnitTest.hpp>``
+  7. Standard library headers: ``#include <vector>``
+  8. *Two* empty lines after the include block
 - **File Extensions**: Use ``.hpp`` for headers, ``.cpp`` for implementations
 - **File Scope**: Aim for one class per file, with matching name
 - **Maximum File Length**: Try to keep files under 500 lines
@@ -52,6 +54,50 @@ metadata:
   - ``@needtest``: Flags untested functionality
   - ``@wip``: This part is work in progress—talk to the author before modifying
 - Compact `///` doc blocks with no empty lines are preferred for large header files.
+- Group related functions in classes with additional `public:` sections.
+
+## Class organization.
+Each of the following is considered as a "section", separated by: empty line, `public/private/protected:`.
+Omitted if not applicable.
+1. Private types: (no marker, order depends on dependencies)
+   - `friend class`
+   - `struct`/`class`
+   - `enum class`/`enum`
+   - aliases/usages `using`
+2. Public types: (`public:` no comment, order depends on dependencies)
+   - `struct`/`class`
+   - `enum class`/`enum`
+   - `using`
+3. Public constructors: (`public:` no comment)
+   - ctor with no arguments first (even when default)
+   - ctors with arguments
+   - non default copy / move ctors
+   - non default assignment / move operators.
+   - line comment `// defaults` or `// defaults/delections`
+   - `= default` and `= delete` copy ctors
+   - `= default` and `= delete` assign/move operators
+4. Main methods: (`public:` no comment)
+   - e.g. `create() -> MyClassPtr`
+5. Implemented methods from superclasses: (`public: // implement <Superclass>`, on section for each class)
+   - Overridden methods in order.
+6. Operators: (`public: // operators`)
+   - comparison operators
+   - arithmetic operators
+   - logical operators
+   - others
+7. Accessors: (`public: // accessors`, getters/setters/tests)
+   - tests (`isValue()`)
+   - getters/setters grouped per attribute
+     (`value()`, `setValue(value)`, `convenienceGetter()`, `setConvenienceSetter(value)`)
+8. Tools / Everything Else: (`public:`, only add comment if group is distinct)
+9. Conversion Methods: (`public: // conversion`)
+   - Conversion to methods `auto toStringList() const`, `to...`
+   - Conversion from builders `static auto from...() -> MyClass`
+10. Private methods: (`private:` no comment)
+   - Private helper methods for implementation details
+   - Private constructors for specific use cases
+11. Public/Protected/Private attributes: (`public:`, `protected:`, `private:` no comment)
+   - e.g. `int _value; ///< The value`
 
 ## Constants & Literals
 - Use ``constexpr`` or ``const`` where applicable
@@ -62,7 +108,7 @@ metadata:
 - Prefer a modern C++20 syntax
 - Always use **trailing return types** for all *non-void* functions: ``auto create() -> std::string;``
 - Use ``auto`` when the type is obvious or improves readability,
-  *but* specify types in arguments for for return types for non-generic lambdas and functions
+  *but* specify types in arguments for return types for non-generic lambdas and functions
 - Use structured bindings ``const auto &[a, b] =``
 - Use ``[[nodiscard]]`` and ``noexcept`` where applicable
 - Use ``override`` for overwritten/implemented functions
@@ -72,18 +118,5 @@ metadata:
 - Prefer range-based ``for`` loops
 - Use ``std::format`` and ``std::chrono`` for formatted output and timing
 - Prefer ``std::ranges`` and ``std::views`` for expressive algorithms
-
-## Guidelines: Quality and Safety First
-- Prefer code that is: safe, reliable, readable, testable.
-- Avoid manual memory management and raw pointers
-- Trust the compiler to optimize; prioritize clarity over micro-optimization
-- Perform bounds and range checks
-- Write unit tests for all modules and key functions
-- Ensure good test coverage and fail clearly when things go wrong
-- A crash is better than silent failure or undefined behavior
-- For helper functions, use anonymous namespaces as a last resort:
-  - prefer private static member methods
-  - put helper methods in separate modules when there is a chance for reuse
-- Even for implementation details, add API comments if the purpose is not obvious.
 
 
