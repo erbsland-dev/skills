@@ -1,7 +1,7 @@
 interface:
   display_name: "Erbsland Color Term"
   short_description: "Use erbsland-color-term for terminal, rich text, and UI work"
-  default_prompt: "Use $erbsland-color-term to integrate erbsland-color-term 1.8.0 and choose the right layer: direct terminal output, CursorWriter and CursorBuffer, Buffer and updateScreen(), text::HtmlRenderer, or the beta ui::Application framework."
+  default_prompt: "Use $erbsland-color-term to integrate erbsland-color-term 1.10.0 and choose the right layer: direct terminal output, CursorWriter and CursorBuffer, Buffer and updateScreen(), text::HtmlRenderer, or the beta ui::Application framework with actions and themes."
   icon_small: "./assets/logo.png"
   icon_large: "./assets/logo.png"
   brand_color: "#1e2423"

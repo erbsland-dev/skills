@@ -111,6 +111,7 @@ Omitted if not applicable.
   *but* specify types in arguments for return types for non-generic lambdas and functions
 - Use structured bindings ``const auto &[a, b] =``
 - Use ``[[nodiscard]]`` and ``noexcept`` where applicable
+- Use ``[[maybe_unused]]`` for unused parameters, except for private tags - here omit the parameter name.
 - Use ``override`` for overwritten/implemented functions
 - Use ``final`` for final classes
 - Use **designated initialization** if it improves the readability of the code

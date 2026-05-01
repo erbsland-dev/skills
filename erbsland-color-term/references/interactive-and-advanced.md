@@ -51,7 +51,8 @@ const auto name = terminal.input().readLine();
 terminal.input().setMode(Input::Mode::Key);
 ```
 
-Use `InputDefinition` when the app also needs user-facing shortcut descriptions or configurable key bindings.
+Use `InputDefinition` when a manual app needs user-facing shortcut descriptions or configurable key bindings. In
+`ui::Application` code, use `ui::Action`, `ui::Actions`, `Keys`, and `KeyModifiers` instead.
 
 ## Minimum Size And Crop Feedback
 

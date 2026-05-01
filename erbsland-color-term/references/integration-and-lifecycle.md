@@ -33,7 +33,7 @@ find_package(erbsland-color-term REQUIRED)
 target_link_libraries(my-app PRIVATE ErbslandDEV::erbsland-color-term)
 ```
 
-Current repository guidance for the `1.8.0` tree is `CMake 3.28+` and `C++20`. Prefer the checked-out repository's
+Current repository guidance for the `1.10.0` tree is `CMake 3.28+` and `C++20`. Prefer the checked-out repository's
 current top-level requirement over older snippets copied from stale docs.
 
 ## Include Strategy
@@ -57,7 +57,7 @@ current top-level requirement over older snippets copied from stale docs.
 - `text::HtmlRenderer`:
   document-like output, rendered help pages, HTML fragments, structured prose
 - `ui::Application`:
-  event-driven TUIs with pages, surfaces, focus, key bindings, timers, workers
+  event-driven TUIs with pages, surfaces, focus, actions, themes, timers, workers
 
 ## Terminal Lifecycle
 

@@ -40,6 +40,7 @@ auto writeStatus(CursorWriter &writer, std::string_view label, std::string_view 
 - `CharStyle`
 - `Char`
 - `String`
+- `StringView`
 - plain text
 
 As arguments are processed, the active style stays on the writer until it is changed again.
@@ -105,11 +106,12 @@ Overflow guidance:
 
 Use it when wrapped text should behave the same in a real terminal and inside retained history.
 
-Helpful support types in `1.8.0`:
+Helpful support types:
 
 - `ParagraphOptions` for wrapping, spacing, markers, and fallback behavior
 - `ParagraphIndents` when indentation settings should be shared or reused
 - `FastCharSet` when separator or grouping character sets are performance-sensitive and reused often
+- `StringView` and `IndexRange` for cheap read-only slices of shared terminal strings
 
 Background rule:
 

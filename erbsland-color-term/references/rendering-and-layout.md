@@ -1,7 +1,7 @@
 # Rendering and Layout
 
 Use this reference when composing redraw-based screens with `Buffer`, laying out panels with geometry helpers,
-rendering `Text`, or drawing frames, fonts, bitmaps, and composed sub-buffers.
+rendering `Text`, or drawing frames, grids, fonts, bitmaps, clipped regions, and composed sub-buffers.
 
 If the task is really an event-driven surface tree, stop here and read `ui-framework.md` instead.
 
@@ -73,6 +73,7 @@ Prefer explicit APIs over ad-hoc resize logic:
 - use `BufferResizeMode` when content-preserving resize behavior matters
 - use `BufferView` or `BufferConstRefView` when logical content is larger than the visible panel
 - use `BufferDrawOptions` when placement needs cropping, alignment, or color overwrite control
+- use `WriteClippedBufferRef` for short-lived subsurface paint helpers that must write through a clipped rectangle
 
 Pattern:
 
@@ -90,6 +91,7 @@ Start with the highest-level drawing helper that fits:
 
 - `drawFilledFrame(...)` or `FrameStyle` for most panel borders
 - `FrameDrawOptions` for reusable or animated border styles
+- `FrameBorder`, `GridLayout`, and `drawGridLayout(...)` for table-like layouts with independently styled grid lines
 - `Text` plus `Font::defaultAscii()` for large ASCII headings
 - `ColorSequence` and `TextAnimation` for animated text
 - `Bitmap` and `drawBitmap(...)` for pixel-style visuals

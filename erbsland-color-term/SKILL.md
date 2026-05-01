@@ -1,59 +1,56 @@
 ---
 name: erbsland-color-term
-description: Integrate and use the Erbsland Color Terminal C++ library (`erbsland-color-term`, `erbsland::cterm`) for direct terminal output, `CursorWriter` and `CursorBuffer`, `Buffer` and `updateScreen()`, rich text via `text::HtmlRenderer`, and the beta `ui::Application` framework. Use when wiring CMake, choosing headers, or implementing terminal apps with `TerminalSession`, `Terminal`, `String`, `Text`, `BufferView`, drawing helpers, HTML rendering, or UI surfaces and layouts.
+description: Integrate and use the Erbsland Color Terminal C++ library (`erbsland-color-term`, `erbsland::cterm`) for terminal output, `CursorWriter`/`CursorBuffer`, `Buffer`/`updateScreen()`, rich text via `text::HtmlRenderer`, and beta `ui::Application`. Use when wiring CMake, choosing headers, or implementing terminal apps with `TerminalSession`, `Terminal`, `StringView`, `Text`, `BufferView`, drawing helpers, themes, actions, or UI layouts.
 ---
 
 # Erbsland Color Term
 
-Targets `erbsland-color-term` version `1.8.0` (`2026-04-17`).
+Targets `erbsland-color-term` version `1.10.0` (`2026-04-30`).
 
-If the checked-out project uses a later version, treat this skill as the default map, then verify newer APIs in the
-headers and changelog before assuming a feature does not exist. Later versions may add higher-level helpers or change
-beta APIs.
+For later checkouts, verify headers and changelog before assuming a feature does not exist.
 
-This skill is intentionally compact. Do not read every reference up front. Start with the one reference that matches
-the task, then open a second one only if the implementation crosses layers.
+Read one matching reference first; open a second only when the implementation crosses layers.
 
 If the project follows Erbsland's C++ conventions, also use `$erbsland-cpp-code-style`.
 
 ## Start With One Reference
 
-- Build integration, header choice, `Terminal`, `TerminalSession`, direct output, plain-text fallback:
+- Build integration, header choice, `Terminal`, `TerminalSession`, direct output, text fallback:
   `references/integration-and-lifecycle.md`
 - Shared output helpers, `CursorWriter`, `CursorBuffer`, `CharStyle`, `CharAttributes`, retained scrollback:
   `references/cursor-output-and-styles.md`
-- Manual redraw apps with `Buffer`, `updateScreen()`, `BufferView`, `Text`, geometry, frames, fonts, or bitmaps:
+- Manual redraw apps with `Buffer`, `updateScreen()`, `BufferView`, `Text`, geometry, grids, clipped buffers, frames:
   `references/rendering-and-layout.md`
 - Resize-aware loops, input polling, scrollable views, `UpdateSettings`, custom backends, or host integration:
   `references/interactive-and-advanced.md`
 - Rich text, HTML, `text::HtmlRenderer`, `text::Style`, `text::TextNode`:
   `references/rich-text-and-html.md`
-- Structured event-driven TUIs with pages, surfaces, layouts, timers, and worker threads:
+- Structured event-driven TUIs with pages, actions, themes, surfaces, layouts, timers, and workers:
   `references/ui-framework.md`
 
 If unsure, start with `references/integration-and-lifecycle.md`.
 
 ## Choose The Highest-Level API That Fits
 
-- Prefer `TerminalSession` over manual `initializeScreen()` and `restoreScreen()` pairing unless explicit lifetime
-  control is required.
-- Prefer direct `Terminal::print()` and `printLine()` for short-lived tools and simple colored output.
+- Prefer `TerminalSession` over manual `initializeScreen()`/`restoreScreen()` unless exact lifetime control is needed.
+- Prefer direct `Terminal::print()` and `printLine()` for short-lived tools.
 - Prefer helpers that take `CursorWriter &` when the same output should work on `Terminal` and `CursorBuffer`.
 - Prefer `CursorBuffer` for retained terminal-style text such as logs, consoles, and scrollback panes.
 - Prefer `Buffer` plus `Terminal::updateScreen()` for manual redraw apps, dashboards, games, and composed layouts.
+- Prefer `GridLayout`/`FrameBorder` for table-like frames and `WriteClippedBuffer` for subsurface painting.
 - Prefer `text::HtmlRenderer` when the input is already structured HTML or document-like content.
-- Prefer `ui::Application` when building a structured, event-driven TUI with focus handling, key bindings, timers, or
-  worker threads.
+- Prefer `ui::Application` for structured, event-driven TUIs with focus, actions, timers, or workers.
 - Treat `ui` as beta. Use it when it matches the task, but expect API drift across later releases.
 
 ## Core Rules
 
 - Create one long-lived `Terminal` per app.
 - If you use `ui::Application`, let the framework own the terminal lifecycle.
-- Use `String` as the public UTF-8 boundary and `String::displayWidth()` when terminal cell width matters.
+- Use `String` as the text owner, `StringView` for read-only APIs, and `displayWidth()` when terminal cells matter.
 - If malformed UTF-8 handling matters, look for `EncodingErrors` instead of relying on implicit recovery.
 - Use `Inherited` to preserve an existing color component and `Default` to reset to the terminal default.
 - Use `CharAttributes::reset()` only when later text must explicitly clear attributes.
+- In UI code, use `Action`/`Actions` and `Keys` instead of the old key-binding API; use themes over hard-coded styling.
 - Keep `OutputMode::FullControl` for cursor- or screen-aware workflows. Switch to `OutputMode::Text` only for plain
   text.
 - Do not build manual ANSI escape handling or a custom backend until the higher-level APIs clearly do not fit.
@@ -76,4 +73,5 @@ If the library source is available, the most useful demos to mirror are:
 
 - `demo/minimum-effort` for direct terminal output and `TerminalSession`
 - `demo/html-viewer` for `text::HtmlRenderer`, `CursorBuffer`, and viewport rendering
-- `demo/ui-hello-world` for `ui::Application`, `ui::Stack`, `ui::TextBox`, and scheduled updates
+- `demo/ui-html-viewer`, `demo/ui-world-view`, and `demo/ui-sections` for current `ui::Application` patterns
+- `demo/grid-layout` for `FrameBorder`, `GridLayout`, and table-like drawing
