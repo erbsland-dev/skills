@@ -1,9 +1,23 @@
 ---
 name: erbsland-color-term
-description: Integrate and use the Erbsland Color Terminal C++ library (`erbsland-color-term`, `erbsland::cterm`) for terminal output, `CursorWriter`/`CursorBuffer`, `Buffer`/`updateScreen()`, rich text via `text::HtmlRenderer`, and beta `ui::Application`. Use when wiring CMake, choosing headers, or implementing terminal apps with `TerminalSession`, `Terminal`, `StringView`, `Text`, `BufferView`, drawing helpers, themes, actions, or UI layouts.
+description: "Use only for the standalone Erbsland Color Terminal C++ library in `erbsland-dev/erbsland-cpp-color-term` or projects consuming that library: CMake integration, terminal output, buffers, rich text, and terminal UI. Do not use for the distinct embedded `cterm` implementation in Erbsland Core (`erbsland-core`/`erbsland-core-dev`, `src/erbsland/cterm`), despite its overlapping `erbsland::cterm` namespace and API names."
 ---
 
-# Erbsland Color Term
+# Standalone Erbsland Color Term
+
+## Check Scope First
+
+Apply this skill only when either:
+
+- the current repository is [`erbsland-dev/erbsland-cpp-color-term`](https://github.com/erbsland-dev/erbsland-cpp-color-term), or
+- the project consumes that standalone repository as an external dependency or submodule.
+
+Do not apply this skill inside Erbsland Core (`erbsland-core` or `erbsland-core-dev`), especially under
+`src/erbsland/cterm`. Core contains its own altered `cterm` implementation. Inspect Core's local headers, CMake,
+documentation, and tests instead; do not transfer versions or API assumptions from this skill.
+
+If provenance is uncertain, inspect the repository remote and dependency path before reading a reference. The shared
+`erbsland::cterm` namespace and overlapping class names do not establish that this skill applies.
 
 Targets `erbsland-color-term` version `1.10.0` (`2026-04-30`).
 
