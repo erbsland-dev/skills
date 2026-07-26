@@ -1,153 +1,149 @@
 ---
 name: erbsland-cpp-code-style
-description: Learn the C++ code style/guidelines for all Erbsland libraries and applications. Use when writing/editing code of C++ Erbsland libs/apps or when requested to use "Erbsland Code Style" in C++ projects.
+description: Apply the portable Erbsland C++20 code style and API documentation rules. Use when writing, editing, refactoring, or reviewing C++ in Erbsland libraries and applications, or whenever a project requests the Erbsland Code Style.
 license: Apache-2.0
 metadata:
   author: erbsland-dev
   version: "1.0"
 ---
-# Erbsland Code Style and Code Guidelines
-## Style
-- **Indentation**: 4 spaces, no tabs
-- **Line Length**: Target a maximum of *120 characters* per line
-- **Braces**: Opening brace stays on the same line
-- **Spacing and Separation**:
-  - Use empty lines to separate logical blocks
-  - No empty lines around function definitions in headers. Separated by a `/// API doc`.
-  - One empty line around `struct`, `class`, or `enum` definitions
-  - One empty line around function implementations in `.cpp` files
-- **.clang-format**: If exist in project root, the result is accepted. Still some manual adjustments may be necessary.
-- **pre_commit**: If exist (in `utilities` or `tools`):
-  authoritative but usually slow tool for formatting before any commit after changes
-  called via `.venv/bin/python3 utilities/pre_commit.py` or `.venv/bin/python3 utilities/run.py pre_commit`
 
-## Naming Conventions
-- **Classes**: PascalCase (e.g., `Controller`, `TestClassBase`)
-- **Methods and Functions**: camelCase (e.g., `addTestClass`, `parseCommandLine`)
-- **Member Variables**: `_underscorePrefix` (e.g., `_console`, `_testClasses`)
-- **Global Constants**: `cExample` if not in dedicated namespace.
-- **Template Parameters**: either `tExample`, or single `T`.
-- **Namespaces**: all lowercase with nested structure (e.g., `erbsland::unittest`)
-- **Preprocessor Macros**: all uppercase `EXAMPLE`; prefix `ERBSLAND_<LIB_NAME>_` for Erbsland apps/libs.
+# Erbsland C++ Code Style
 
-## File Organization
-- **Copyright Block**: Two line comments `// Copyright ...` at the begin of the file.
-- **Header Guards**: Use `#pragma once` directly after copyright block (no empty line!).
-- **Include Order** (sort each block individually, separate blocks with empty lines):
-  1. Corresponding header (only in `.cpp`) — *followed by two empty lines*, or two empty lines after `#pragma once`.
-  2. Local includes: `#include "Example.hpp"`
-  3. Local subdirectory includes: `#include "sub/sub/Example.hpp"`
-  4. Local adjoint includes: `#include "../Example.hpp"` (exact one `..`)
-  5. Local relative includes: `#include "../../Example.hpp"` (two and more `..`)
-  6. Project libraries: `#include <erbsland/unittest/UnitTest.hpp>`
-  7. Standard library headers: `#include <vector>`
-  8. *Two* empty lines after the include block
-- **File Extensions**: Use `.hpp` for headers, `.cpp` for implementations
-- **Directory structure:**
-  - Sources: `<project root>/src/<one dir per ns>/<file>`
-    E.g. `class ::erbsland::math::SatInteger` -> `src/erbsland/math/SatInteger.hpp`
-  - Unittests: `<project root>/test/unittest/src/<mirror dirs from sources>/<file>` 
-- **File Scope**: One class, enum class, method collection per file.
-- **Implementation Details**: Use namespace `<main ns>::impl` and subdirectory `impl`.
-  E.g. `class ::erbsland::math::SatInteger` -> `src/erbsland/math/impl/SatInteger[Helper/Traits/Impl].hpp`
-- **Maximum File Length**: Try to keep files under 500 lines
-- **Splitting**: Split large impl into multiple `cpp` or `tpp` (templates) files.
-  - Use base filename with **one underscore** to separate the lowercase part-name: E.g. `SatInteger_compare.tpp`
-  - Include `tpp` files at the bottom of the `hpp` files and do not add an include back to the `hpp` file.
-  
+## Workflow and authority
+
+1. Inspect the project's instructions and local guidelines before changing code.
+2. Treat the project's `.clang-format` as authoritative for mechanical formatting.
+3. Apply this skill as the semantic baseline; let project-specific guidelines refine or override it for their domain.
+4. Format every changed C++ file and run the project's validation command, if one exists.
+
+Interpret **must** as required, **should** as the expected default unless there is a concrete reason to deviate, and
+**may** as optional.
+
+## Formatting
+
+- Use empty lines to separate logical blocks.
+- Do not add empty lines between adjacent documented declarations or inline definitions in a header.
+- Use one empty line around namespace-scope class, struct, enum, and function definitions.
+- Accept `.clang-format` decisions for indentation, line length, braces, wrapping, spacing, and includes.
+
+## Naming
+
+- Name types and public type aliases in `PascalCase`; methods, free functions, local variables, and parameters in
+  `camelCase`; and member variables in `_camelCase`.
+- Name namespace-scope and static constants in `cCamelCase`.
+  Name enum-like static constants in `PascalCase` when appropriate, as in `Color::Red`.
+- Use `T` for a single straightforward template parameter and `tCamelCase` for multiple or descriptive parameters.
+- Use lowercase nested namespace names, such as `erbsland::unittest`.
+- Write preprocessor macros in `UPPER_CASE` with an `ERBSLAND_<LIBRARY>_` prefix in Erbsland libraries and applications.
+  Do not use macros for constants.
+- Treat initialisms as words, such as `HttpServer` and `parseUtf8`.
+  Keep the documented spelling of domain-specific abbreviations.
+
+## Files and includes
+
+- Begin each C++ file with the project's two-line copyright block.
+  Put `#pragma once` directly after it in headers.
+- Use `.hpp` for headers, `.cpp` for implementations, and `.tpp` for extracted templates.
+- Keep one primary class, struct, enum, alias, or logical method collection in each `hpp/cpp` module.
+  Allow closely related implementation helpers to share a module.
+- Match the primary type and filename, and mirror namespaces in the source directory structure.
+  Subdivide a large namespace with directories without adding another namespace.
+- Put private implementation details in an `impl` directory and matching `impl` namespace.
+- Directly include every declaration a file uses; do not rely on unrelated transitive includes.
+  Include a `cpp` file's corresponding header first.
+- Split implementations beyond roughly 500 lines by logical responsibility.
+  Name parts `Class_part.cpp`, `Class_part.hpp`, or `Class_part.tpp`.
+  Include `tpp` parts at the bottom of the owning header without an include back to that header.
+- Do not edit generated files directly.
+  Modify their source or generator and regenerate them.
+
 ## CMake
-- One `CMakeLists.txt` per directory with source files.
-- Flat `target_sources(<target> PRIVATE <local files>)` for the files in the same directory (not for subdirectories).
-- Include subdirectories via `add_subdirectory(<subdir>)` in front of `target_sources`.
 
-## Comments and API Documentation
-- **API Docs**: Use `///` lines and Doxygen `@`-syntax
-- **Inline Comments**: Use `//` for short clarifying notes
-- **Block Comments**: Avoid `/* ... */` unless necessary
-- **Special Doxygen Tags**:
-  - `@tested`: Indicates this is covered by a unit test (name or path to the tests)
-  - `@notest`: Explains why a unit test is not applicable
-  - `@needtest`: Flags untested functionality
-  - `@wip`: This part is work in progress—talk to the author before modifying
-  - `@seedoc{/path}`: Inserts a :doc:`/path` reference.
-  - `@seeref{id}`: Inserts a :ref:`id` reference.
-- Compact `///` doc blocks with no empty lines are preferred for large header files.
-- Group related functions in classes with additional `public:` sections.
+- Use one `CMakeLists.txt` in each directory that contains source files.
+- Add only local files with one flat `target_sources(<target> PRIVATE ...)` block.
+  Add nested directories with `add_subdirectory(...)` before `target_sources`.
+- Sort files and subdirectories alphabetically.
 
-## Class File Organization
-The methods, types and variables in a class shall be grouped in a logical *sections*.
+## Comments and API documentation
 
-A *section* is created via extra access specifier (`public:`, `protected:`, `private:`) lines.
-- An empty line before the specifier to separate the section.
-- An optional `//` comment after the specifier to explain the grouping in short lowercase 1-4 words.
+### Comment format
 
-The following list contains common *sections* in a class, their order and content.
-The list is a recommendation and may be adapted for special cases or larger APIs with more structuring needs.
+- Write API documentation with `///` and Doxygen `@` commands, without empty comment lines.
+- Use `//` for short implementation notes.
+  Use `/* ... */` only when an inline annotation or generated layout makes it clearer than a line comment.
+- Use `@seedoc{/path}` to link to a documentation page and `@seeref{id}` to link to a reference target.
+- Treat `@wip` as work in progress and ask the project owner before modifying the marked API.
 
-(beginning of class)
-1. Private types: (no access specifier at top of class, order depends on dependencies)
-   - `friend class`
-   - `struct`/`class`
-   - `enum class`/`enum`
-   - aliases/usages `using`
-2. Public types: (`public:` no comment, order depends on dependencies)
-   - `struct`/`class`
-   - `enum class`/`enum`
-   - `using`
-3. Public constructors: (`public:` no comment)
-   - ctor with no arguments first (even when default)
-   - ctors with arguments
-   - non default copy / move ctors
-   - non default assignment / move operators.
-   - line comment `// defaults` or `// defaults/delections`
-   - `= default` and `= delete` copy ctors
-   - `= default` and `= delete` assign/move operators
-4. Main methods: (`public:` no comment)
-   - e.g. `create() -> MyClassPtr`
-5. Implemented methods from superclasses: (`public: // implement <Superclass>`, on section for each class)
-   - Overridden methods in order.
-6. Operators: (`public: // operators`)
-   - comparison operators
-   - arithmetic operators
-   - logical operators
-   - others
-7. Accessors: (`public: // accessors`, getters/setters/tests)
-   - tests (`isValue()`)
-   - getters/setters grouped per attribute
-     (`value()`, `setValue(value)`, `convenienceGetter()`, `setConvenienceSetter(value)`)
-8. Tools / Everything Else: (`public:`, only add comment if group is distinct)
-9. Conversion Methods: (`public: // conversion`)
-   - Conversion to methods `auto toStringList() const`, `to...`
-   - Conversion from builders `static auto from...() -> MyClass`
-10. Private methods: (`private:` no comment)
-    - Private helper methods for implementation details
-    - Private constructors for specific use cases
-11. Public/Protected/Private attributes: (`public:`, `protected:`, `private:` no comment)
-    - e.g. `int _value; ///< The value`
-(end of class)
+### Required documentation
 
-## Constants & Literals
-- Use `constexpr` or `const` where applicable
-- Never use macros for constants!
-- Use lazy initialization when possible (like `auto myData() { static auto data = ...; return data; }`)
+- In public and internal APIs, document every class, struct, enum, public type alias, public constant, namespace-scope
+  function, and public method.
+- Start with one brief line and document every parameter, non-void return value, thrown exception, and relevant edge or
+  error case.
+- Move extensive explanations to linked reference or topic documentation.
+- Give every data member and enum member a brief trailing `///<` description.
+- Group undocumented, explicitly defaulted or deleted special members under `// defaults` or `// defaults/deletions`.
+- Give a trivial getter or setter only a one-line description without `@param` or `@return`.
 
-## Modern C++ Usage
-- Prefer a modern C++20 syntax
-- Prefer concepts where they are portable
-- Always use **trailing return types** for all *non-void* functions: `auto create() -> std::string;`
-- Use `auto` when the type is apparent or improves readability.
-- Explicit return types to non-generic lambdas `[&]() -> void` to speedup compilation.
-- Use structured bindings `const auto &[a, b] =`
-- Use `[[nodiscard]]` and `noexcept` where applicable
-- Use `[[maybe_unused]]` for unused parameters, except for private tags - here omit the parameter name.
-- Use `override` for overwritten/implemented functions
-- Use `final` for final classes
-- For impl structs, use designated initialization if it improves the readability of the code.
-- Use `std::unique_ptr` / `std::shared_ptr` instead of raw pointers
-- Prefer range-based `for` loops
+### Test status
 
-### Plain C++ (non Erbsland Core)
-- Use `std::format` and `std::chrono` for formatted output and timing
-- Prefer `std::ranges` and `std::views` for expressive algorithms
+- End every documented class, struct, and namespace-scope function API block with exactly one test-status marker.
+  Do not mark constructors, methods, operators, or other members.
+- Use `@tested{ExampleTest OtherTest}` for one or more test-suite class names separated by spaces.
+  End every name in `Test`; do not use paths or method selectors.
+- Use `@notest{reason}` to explain in one line why a test is not applicable.
+- Use `@needtest{reason}` to identify missing coverage in one line.
 
+## Class organization
 
+Group a class with repeated access specifiers.
+Use one empty line before each section, none between its declarations, and an optional lowercase `//` label.
+Allow simple value structs and dependency constraints to use a smaller or different layout.
+
+Use this usual section order:
+
+1. Place private friends, nested types, enums, and aliases in dependency order.
+2. Place public types in dependency order.
+3. Order the default and other constructors, destructor, copy and move constructors, then copy and move assignment.
+   Put explicitly defaulted or deleted members in a final defaults group.
+4. Place main public operations.
+5. Group overrides in one `public: // implement Base` section per base.
+6. Order comparison, arithmetic, logical, then other operators.
+7. Place condition tests first, then each attribute's accessors together.
+8. Group other public tools only when this improves navigation.
+9. Place `to...` methods before static `from...` and other factories.
+10. Place private and protected methods.
+11. Place data members grouped by access.
+
+## Modern C++
+
+- Use portable C++20 features.
+  Prefer concepts, structured bindings, designated initialization, and range-based loops when clearer.
+- Use trailing return types for non-void functions where the syntax permits, such as
+  `auto create() -> std::string`.
+  Use `void function()` for ordinary void functions and explicit `-> void` on non-generic lambdas.
+  Use concrete return and parameter types for non-generic functions and lambdas.
+- Use `auto` for values when the type is apparent or clearer.
+  Use `const` for immutable values and `constexpr` when usable at compile time.
+- Add `[[nodiscard]]` when silently discarding a result is likely to be a mistake.
+  Add `noexcept` only when the operation is guaranteed not to propagate an exception.
+- Mark intentionally unused named parameters `[[maybe_unused]]`.
+  Omit an unused private overload-disambiguation tag's name.
+- Mark overriding functions `override` and classes deliberately closed to extension `final`.
+- Express ownership explicitly.
+  Use values or references by default, `std::unique_ptr` for unique ownership, `std::shared_ptr` only for shared
+  ownership, raw pointers for deliberate non-owning or native boundaries, and `std::optional` for an absent value.
+- Expose raw pointers through public APIs only at unavoidable interoperability boundaries.
+  Use an explicitly named `Unsafe...` alias or wrapper and document ownership, lifetime, nullability, and mutability.
+- Use lazy initialization for immutable or expensive data whose construction should be deferred.
+
+## Erbsland Core integration
+
+When Erbsland Core is available:
+
+- Prefer `String` for read-only strings, `""_el` for literals, and `StringFormat` for formatting.
+- Prefer `StringEditor` for construction and `AnyStringBuilder` for width-agnostic construction.
+- Prefer Erbsland Core types and algorithms before `std::` types and algorithms.
+
+Without Erbsland Core, use `std::format` and `std::chrono` for formatting and time handling, and prefer `std::ranges`
+and `std::views` for expressive algorithms.
