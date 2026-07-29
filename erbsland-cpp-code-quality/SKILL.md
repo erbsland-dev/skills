@@ -1,44 +1,31 @@
----
-name: erbsland-cpp-code-quality
-description: Erbsland C++20 quality rules for writing, reviewing, refactoring, and extending code.
----
+# Erbsland C++ Code Quality
 
-Prioritize safety, reliability, readability/smallness, testability, then adequate speed.
-Prefer explicit, conventional designs; refactor weak responsibilities before extending.
-Keep behavior with data; wrap enums accumulating logic.
-Treat types with static-only methods/variables, one-call internal wrappers, and in-function helper lambdas as smells.
+Read the project instructions, Code Style, API guidelines, and tests before reviewing a design.
+Apply normal C++ engineering best practices without restating them.
 
-Use RAII; forbid manual memory management and unguarded raw pointers in regular code.
-Instead of raw pointers, prefer references, smart pointers, `std::span` or `std::optional`.\
-Express ownership/invariants; check boundaries, not guaranteed states.
-Prefer defined failure to UB.
+## Erbsland priorities
 
-Test every module and important function.
-Expose logic through public or `impl/` interfaces.
-Avoid `.cpp`-only helpers/types, anonymous namespaces, and function embedded lambdas unless isolation is necessary.
-Abstract noncritical OS APIs for mocks.
+Apply these priorities in order:
 
-Use one maintained type per header.
-Add `.cpp` above 20 implementation lines or to isolate dependencies; keep source below 500 lines.
-Refactor before splitting; name parts `<Type>_<part(lowercase)>.cpp`/`.tpp`.
+1. Safety, correctness, and reliability.
+2. Defined and diagnosable failure.
+3. Portability across all supported platforms.
+4. Readability, smallness, and testability.
+5. Adequate performance.
 
-Document public/cross-module/impl interfaces: purpose, contract, failures, ranges.
-API docs shall always make purpose, parameter, return values, exceptions, possible errors and special cases clear.
-Omit obvious special members/private details; minimize trivial accessors/overrides.
-Put complex invariants and extension points in Sphinx Implementation Notes.
+Do not trade a higher priority for a lower one without an explicit project requirement.
 
-Refactor toward clear responsibilities, low duplication/coupling, and tests.
+- Prefer explicit, conventional designs over clever or speculative abstractions.
+- Refactor weak or mixed responsibilities before extending them.
+- Keep behavior with the data whose invariants it governs.
+  Replace enum-like values with proper types when they accumulate behavior.
+- Expose reusable or independently meaningful internal logic through an `impl` interface when this improves testing.
+  Keep genuinely local helpers private.
+- Keep unsafe and native boundaries narrow, explicit, named, documented, and easy to audit.
+- Require evidence before adding complexity for performance.
 
-Prefer design/code that: make invalid use hard; responsibilities clear; is easy to test; is modular and easy to extend; has defined behaviour; keeps performance acceptable.
+## Reviews
 
-When reviewing code, check if:
-- methods/behavior live with the correct (data) type;
-- ownership is explicit;
-- the code is safe by default;
-- the code is testable without hacks;
-- design is ready for future extension;
-- there are untestable hidden functions;
-- files are small and cohesive;
-- all public interfaces are documented according to rules;
-- an implementation easy to understand and does no clever hacks;
-- the code uses modern C++20 appropriately.
+Report only material issues that conflict with these priorities.
+Support each finding with a concrete consequence and recommend the smallest proportionate remedy.
+Say clearly when no material quality issue is present.
