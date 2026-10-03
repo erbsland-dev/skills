@@ -25,6 +25,13 @@ Interpret **must** as required, **should** as the expected default unless there 
 - Do not add empty lines between adjacent documented declarations or inline definitions in a header.
 - Use one empty line around namespace-scope class, struct, enum, and function definitions.
 - Accept `.clang-format` decisions for indentation, line length, braces, wrapping, spacing, and includes.
+- Apply these rules manually when `.clang-format` does not enforce them:
+  - Bodies of `if`, `else`, `while`, `for`, and `do` statements **must** be enclosed in `{}`.
+  - There **must** be empty lines around namespace opening and closing lines, between function definitions, and after
+    `#pragma once`.
+  - Data blocks **should** use manual formatting when this improves readability; surround such blocks with
+    `// clang-format off` and `// clang-format on`.
+  - Classes **must** use logically ordered access sections according to [Class organization](#class-organization).
 
 ## Naming
 
@@ -44,16 +51,17 @@ Interpret **must** as required, **should** as the expected default unless there 
 - Begin each C++ file with the project's two-line copyright block.
   Put `#pragma once` directly after it in headers.
 - Use `.hpp` for headers, `.cpp` for implementations, and `.tpp` for extracted templates.
-- Keep one primary class, struct, enum, alias, or logical method collection in each `hpp/cpp` module.
-  Allow closely related implementation helpers to share a module.
+- You *must* only keep one primary class, struct, enum, alias, or logical free method collection in each `.hpp`/`.cpp` module.
+  - **except** type traits that can share one header, and hash or format helpers following a class or struct. 
+  - Implementation helpers shall be placed in a `impl` namespace in individual modules.
 - Match the primary type and filename, and mirror namespaces in the source directory structure.
   Subdivide a large namespace with directories without adding another namespace.
 - Put private implementation details in an `impl` directory and matching `impl` namespace.
 - Directly include every declaration a file uses; do not rely on unrelated transitive includes.
   Include a `cpp` file's corresponding header first.
-- Split implementations beyond roughly 500 lines by logical responsibility.
-  Name parts `Class_part.cpp`, `Class_part.hpp`, or `Class_part.tpp`.
-  Include `tpp` parts at the bottom of the owning header without an include back to that header.
+- Split implementations beyond roughly 500 code lines excluding comments, by logical responsibility.
+  - Name parts `Class_part.cpp`, `Class_part.hpp`, or `Class_part.tpp`.
+  - Include `tpp` parts at *the bottom* of the owning header without an include back to that header.
 - Do not edit generated files directly.
   Modify their source or generator and regenerate them.
 
@@ -70,50 +78,88 @@ Interpret **must** as required, **should** as the expected default unless there 
 
 - Write API documentation with `///` and Doxygen `@` commands, without empty comment lines.
 - Use `//` for short implementation notes.
-  Use `/* ... */` only when an inline annotation or generated layout makes it clearer than a line comment.
+- You *must not* use `/* ... */`, except if required for *generated* code.
 - Use `@seedoc{/path}` to link to a documentation page and `@seeref{id}` to link to a reference target.
 - Treat `@wip` as work in progress and ask the project owner before modifying the marked API.
 
 ### Required documentation
 
-- In public and internal APIs, document every class, struct, enum, public type alias, public constant, namespace-scope
-  function, and public method.
-- Start with one brief line and document every parameter, non-void return value, thrown exception, and relevant edge or
-  error case.
+- In public and internal APIs, you **must** document every class, struct, enum, public type alias, public constant,
+  namespace-scope function, and public method, **except** comparison operators and methods or operators that are
+  overridden, explicitly defaulted, or deleted.
+- Each required API documentation block **must** contain:
+  - one brief opening line;
+  - a description of every parameter (`@param`) and template parameter (`@tparam`), **except** for trivial setters;
+  - a description of the non-void return value (`@return`), **except** for getters and fluent methods;
+  - a description of exceptions thrown at runtime (`@throws`).
+- For non-trivial methods, you **should** also document applicable parameter ranges, thread safety, limits, edge cases,
+  error conditions, and side effects.
 - Move extensive explanations to linked reference or topic documentation.
 - Give every data member and enum member a brief trailing `///<` description.
-- Group undocumented, explicitly defaulted or deleted special members under `// defaults` or `// defaults/deletions`.
-- Give a trivial getter or setter only a one-line description without `@param` or `@return`.
+  If this would make the line too long, place a regular `///` description immediately before the member instead.
 
 ### Test status
 
-- End every documented class, struct, and namespace-scope function API block with exactly one test-status marker.
-  Do not mark constructors, methods, operators, or other members.
+- You **should** end every documented class, struct, and namespace-scope function API block with exactly one
+  test-status marker.
+  **Do not** mark inline types, constructors, methods, operators, or other members.
 - Use `@tested{ExampleTest OtherTest}` for one or more test-suite class names separated by spaces.
   End every name in `Test`; do not use paths or method selectors.
-- Use `@notest{reason}` to explain in one line why a test is not applicable.
 - Use `@needtest{reason}` to identify missing coverage in one line.
+- Use `@notest{reason}` to explain in one line why a test is not applicable.
+  `@notest` means the type **is not or cannot be tested** for `reason`.
+- Prefer `@needtest` before `@notest` if missing coverage is temporary.
+- Prefer `@tested` before `@notest` if a type is implicitly tested through another type.
 
 ## Class organization
 
-Group a class with repeated access specifiers.
-Use one empty line before each section, none between its declarations, and an optional lowercase `//` label.
-Allow simple value structs and dependency constraints to use a smaller or different layout.
+Divide a class into logical sections, repeating access specifiers as needed.
+Use one empty line before each section and none between its declarations, except before a defaults group.
+Add lowercase `//` labels according to the rules below.
+Structs with no methods, or whose entire declaration is fewer than eight lines excluding comments, **must not** use this
+section layout.
+
+Label placement:
+
+- Type and data-member sections **must not** have a label, regardless of access.
+- Public method sections **must** have a label, except for the construction and operator sections.
+- Protected method sections **should** have a label.
+- Private method sections **may** have a label only when the class declaration exceeds 100 lines and the label improves
+  navigation.
 
 Use this usual section order:
 
 1. Place private friends, nested types, enums, and aliases in dependency order.
 2. Place public types in dependency order.
-3. Order the default and other constructors, destructor, copy and move constructors, then copy and move assignment.
-   Put explicitly defaulted or deleted members in a final defaults group.
-4. Place main public operations.
-5. Group overrides in one `public: // implement Base` section per base.
-6. Order comparison, arithmetic, logical, then other operators.
-7. Place condition tests first, then each attribute's accessors together.
-8. Group other public tools only when this improves navigation.
-9. Place `to...` methods before static `from...` and other factories.
-10. Place private and protected methods.
-11. Place data members grouped by access.
+3. Order the construction section as follows: default constructor, other constructors, destructor, copy constructor,
+   move constructor, copy assignment, then move assignment.
+   Put explicitly defaulted or deleted members at the end of this section in a defaults group, as described below.
+4. Place operators immediately after construction and defaults, ordered as comparison, arithmetic, logical, then other
+   operators.
+5. Place accessors and condition tests next, with condition tests first, then each attribute's accessors together.
+6. Public overrides **must** be grouped in one `public: // implement Base` section per base class.
+   This grouping takes precedence over the operator and accessor sections; keep constructors and destructors in the
+   construction section.
+   Overrides **should** omit API documentation to avoid duplicating the base class's documentation, and **should** follow
+   the declaration order of methods in that base class.
+7. Place all remaining public methods that do not match other points in this list.
+   Divide them into additional logical groups only when this improves navigation.
+8. Place public `to...` methods, followed by public static `from...` methods and other factories.
+9. Place any remaining public static helper methods.
+10. Repeat points 6, 7, and 9 for protected methods first, then private methods, using the corresponding access specifiers.
+    Protected methods **must** have API documentation unless exempt under [Required documentation](#required-documentation).
+    Private helper methods **should** have API documentation.
+11. Group data members by access, in the order public, protected, then private.
+
+Defaults grouping:
+
+- Precede the group with one empty line and one of these comment lines:
+  - `// defaults` if every declaration in the group uses `= default`.
+  - `// defaults/deletions` if any declaration in the group uses `= delete`.
+
+When rules conflict, choose the most readable layout; use maintainability as the next criterion.
+
+Read [templates](references/templates.md) for complete annotated templates.
 
 ## Modern C++
 

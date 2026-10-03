@@ -1,3 +1,7 @@
+---
+name: erbsland-cpp-code-quality
+description: Erbsland C++20 quality rules for writing, reviewing, refactoring, and extending code.
+---
 # Erbsland C++ Code Quality
 
 Read the project instructions, Code Style, API guidelines, and tests before reviewing a design.
