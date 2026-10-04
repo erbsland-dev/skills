@@ -1,0 +1,4 @@
+interface:
+  display_name: "Erbsland Core"
+  short_description: "Build applications with efficient, idiomatic Core APIs"
+  default_prompt: "Use $erbsland-core to develop this application using Core's public APIs, consumer namespaces, and efficient text operations."
