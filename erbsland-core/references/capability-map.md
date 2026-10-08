@@ -53,7 +53,7 @@ throwing/nonthrowing behavior before choosing an operation.
 | Lists, maps, sets, enum flags, results, coroutines | `el::List`, `el::Map`, `el::HashMap`, `el::Set`, `el::EnumFlags`, `el::Result`, `el::CoTask` | `doc/reference/util/utilities.rst` |
 | Typed indexes, counts, offsets, ranges, versions | `el::ByteIndex`, `el::ByteLength`, `el::CpIndex`, `el::CpLength`, `el::ItemCount`, `el::Version` | `doc/reference/unit/units_and_versions.rst` |
 | Overflow handling, saturation, large integers | `el::BoundedInteger`, `el::SaturatingInteger`, `el::BigInteger`; search required arithmetic policy | `doc/reference/math/mathematics.rst` |
-| Structured errors, exceptions, diagnostic documents | `el::Diagnostic`, `el::Exception`, `el::ParseError`, `el::ErrorDocumentBuilder` | `doc/topics/err/`; `doc/reference/err/errors_and_diagnostics.rst` |
+| Error handling, results, exceptions, diagnostic documents | `el::ApplicationError`, `el::Result`, `el::ResultWithData`, `el::DiagnosticHelper`; read [error handling](errors.md) for consumer patterns | `doc/topics/err/`; `doc/reference/err/errors_and_diagnostics.rst` |
 | App startup, lifecycle, service parts | `el::Application`, `el::ApplicationPart`, `el::ApplicationPartManager`; read [application designs](applications.md) when choosing control flow | `doc/topics/core/choosing_an_application_design.rst` |
 | Events, scheduling, timers, event threads | `el::EventLoop`, `el::EventTimer`, `el::EventSubscription`, `el::ManagedEventThread` | `doc/topics/event/`; `doc/reference/event/event_system.rst` |
 | Logs, sinks, formatting, rotation | `el::LogManager`, `el::LogConfiguration`, `el::LogWriter` | `doc/topics/log/`; `doc/reference/log/logging.rst` |

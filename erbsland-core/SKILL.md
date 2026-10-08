@@ -66,6 +66,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
 ## Read the reference for the current decision
 
 - Starting a new application or choosing its control flow: [application designs](references/applications.md).
+- Error contracts, input validation, exception handling, or diagnostics: [error handling](references/errors.md),
+  including `Result` and `ResultWithData` for expected outcomes.
 - Text processing, parsing, construction, or string costs: [strings](references/strings.md), before choosing an algorithm.
 - Public-header selection, nested namespace exceptions, or adapting test code: [consumer conventions](references/consumer-conventions.md).
 
