@@ -91,7 +91,7 @@ Interpret **must** as required, **should** as the expected default unless there 
   - one brief opening line;
   - a description of every parameter (`@param`) and template parameter (`@tparam`), **except** for trivial setters;
   - a description of the non-void return value (`@return`), **except** for getters and fluent methods;
-  - a description of exceptions thrown at runtime (`@throws`).
+  - a description of runtime exceptions (`@throws`), but *not* logic exceptions (e.g. parameter validation errors).
 - For non-trivial methods, you **should** also document applicable parameter ranges, thread safety, limits, edge cases,
   error conditions, and side effects.
 - Move extensive explanations to linked reference or topic documentation.
