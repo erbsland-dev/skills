@@ -3,6 +3,10 @@
 Read this for text processing, parsing, construction, or performance-sensitive string work.
 Paths below are relative to the Core dependency.
 
+For the current operation, read [parsing and scanning](string-parsing.md) before choosing a cursor or reader,
+[formatting and joining](string-formatting.md) for reusable patterns and fragment assembly, or
+[splitting](string-splitting.md) for list collection and indexed sequential processing.
+
 ## Ownership and mutation
 
 - `String` aliases `U8String`: an owning, read-only UTF-8 value with copy-on-write backing storage.
@@ -39,7 +43,8 @@ In a template function with more than five literals, place the literal using-dir
 | Construct fixed fragments | `String::fromJoined({...})` |
 | Join discovered fragments | `StringList::join()` |
 | Format reusable structured output | `StringFormat::build()` or `appendTo()` |
-| Parse characters sequentially | `readCharAndAdvance()`; `StringCharReader` for captures, buffers, and complex parsing |
+| Inspect decoded characters with loop control | `forEach()`; use the `CpIndex` callback overload when positions are needed |
+| Parse characters sequentially | `readCharAndAdvance()` for a lightweight cursor; one `StringCharReader` for captures, buffers, and complex parsing |
 
 For regular expressions, template rendering, and placeholder expansion, use [the capability map](capability-map.md#text).
 A `CharSet` represents a defined set of characters, not a multi-character delimiter or a quoted-field grammar.
@@ -69,7 +74,7 @@ for the entire operation.
 terminal cells. `displayWidth()` is an approximate per-code-point measurement, not full layout/shaping.
 
 Use byte positions returned by search/iteration directly. Repeated `charAt(CpIndex)` calls can scan from the start
-and make a loop quadratic. Prefer iterators, `readCharAndAdvance()`, or `readCharAndRetreat()`; use code-point ranges
+and make a loop quadratic. Prefer `forEach`, iterators, `readCharAndAdvance()`, or `readCharAndRetreat()`; use code-point ranges
 for small, naturally character-indexed values. Check not-found sentinels before creating ranges and preserve encoded
 boundaries when slicing text. Use one `StringCharReader` for a complex parsing workflow.
 
@@ -79,7 +84,8 @@ conversion. Do not add repeated validation inside processing loops.
 
 Scalar parsing normally consumes the complete string without trimming. Trim only when the input grammar permits it.
 Use fallback forms when invalid text legitimately means a default, and `OrThrow` forms when invalid input must remain
-distinguishable from a valid value. Check parse options for base, signs, overflow, and trailing input as needed.
+distinguishable from a valid value. Convert integers directly to the target type; conversion checks its range.
+See [parsing](string-parsing.md) for base, sign, digit-count, and trailing-input options.
 
 ## Examples
 
@@ -184,8 +190,8 @@ auto formatting(const el::String &name, const int number) -> el::String {
 ```
 
 `directJoin("north"_el)` produces `station: north ready`; `formatting("south"_el, 4)` produces `station south/4 ready`.
-Core's named format specifications include text escaping; the compact `std::format`-style syntax is a supported
-compatibility subset, not the full standard-library contract.
+Use Core's named specifications for new formatting code, including escaping directly in text fields. The compact
+`std::format`-style syntax is a compatibility subset; see [formatting](string-formatting.md) for examples and reuse.
 
 ## Detailed contracts
 

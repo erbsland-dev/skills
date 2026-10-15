@@ -14,9 +14,9 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 | Task / useful search terms | Start with | Local documentation |
 | --- | --- | --- |
 | Trim, replace, remove, normalize, case mapping | `el::String`, `el::Char`, `el::CharSet`; `trimmed`, `replacedAll`, `removedAll`, `transformed`, `normalized` | `doc/topics/text_strings/` |
-| Extract fields, slice, split, delimiter, retain separators | `el::ByteRange`, `el::CpRange`, `el::StringSplitter`, `el::StringList` | `doc/topics/text_strings/slicing_and_splitting_strings.rst`; `doc/reference/text/matching_and_splitting.rst` |
-| Concatenate fragments, join, format, construct efficiently | `String::fromJoined`, `StringList::join`, `el::StringEditor`, `el::AnyStringBuilder`, `el::StringFormat` | `doc/topics/text_formatting/` |
-| Parse Boolean, integer, float, complete value, overflow | `String::toBooleanOrThrow`, `toIntegerOrThrow`, `toFloatOrThrow`; parse options and fallback forms | `doc/topics/text_parsing_and_encoding/converting_text_and_scalar_values.rst` |
+| Extract fields, slice, split, delimiter, retain separators | `el::ByteRange`, `el::CpRange`, `StringList::fromSplit`, `StringSplitter::forEach`; read [splitting](string-splitting.md) | `doc/topics/text_strings/slicing_and_splitting_strings.rst`; `doc/reference/text/matching_and_splitting.rst` |
+| Concatenate fragments, join, format, construct efficiently | `String::fromJoined`, `StringList::join`, `el::StringEditor`, `el::AnyStringBuilder`, `el::StringFormat`; read [formatting](string-formatting.md) | `doc/topics/text_formatting/` |
+| Parse Boolean, integer, float, complete value, overflow | `String::toBooleanOrThrow`, `toIntegerOrThrow<T>`, `toFloatOrThrow`; read [parsing](string-parsing.md) for target-type checks and options | `doc/topics/text_parsing_and_encoding/converting_text_and_scalar_values.rst` |
 | Lightweight wildcard, prefix/suffix pattern | `el::StringPattern`, `el::text::pattern` | `doc/topics/text_parsing_and_encoding/using_string_patterns.rst` |
 | Regular expressions, captures, matching | `el::re::RegEx` | `doc/topics/re/`; `doc/reference/re/regular_expressions.rst` |
 | Suggestions, edit distance, fuzzy matching | `el::text::fuzzy::Matcher` | `doc/topics/text_strings/fuzzy_matching.rst` |
@@ -25,7 +25,7 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 | Structured documents and HTML fragments | `el::TextDocument`, `el::html::HtmlParser`; search "document renderer" | `doc/topics/text_rendering/`; `doc/reference/text/documents_and_rendering.rst` |
 | Template files, conditional/repeated sections, Jinja-like syntax | `el::text::render::Environment`, `Context`, and loaders; implements a defined Jinja-like subset | `doc/topics/text_rendering/rendering_text_layouts.rst`; `doc/topics/text_rendering/template_language_syntax.rst` |
 | Named substitutions, filters, placeholder sources | `el::text::placeholder::Replacer`, `Source`, `Filter` | `doc/topics/text_placeholders/`; `doc/reference/text/placeholders.rst` |
-| Sequential parsing, captures, reader state | `el::StringCharReader` | `doc/reference/text/formatting_and_parsing.rst`; `doc/topics/text_strings/character_access_and_parsing.rst` |
+| Character search, indexed iteration, sequential parsing, captures | `String::findFirstOf`, `forEach`, `readCharAndAdvance`, `el::StringCharReader`; read [parsing](string-parsing.md) to choose | `doc/reference/text/formatting_and_parsing.rst`; `doc/topics/text_strings/character_access_and_parsing.rst` |
 
 ## Time, files, and data
 
@@ -38,7 +38,7 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 | Byte I/O, text I/O, encoding boundary, buffering, timeout | `el::ByteInputStream`, `el::ByteOutputStream`, `el::TextInputStream`, `el::TextOutputStream` | `doc/topics/stream/overview.rst` |
 | Standard input/output, formatted console output | `el::io` helpers and standard-stream proxies | `doc/topics/stream/standard_streams.rst` |
 | JSON, XML, BSON, CBOR, parse limits, value trees | `el::json`, `el::xml`, `el::bson`, `el::cbor` | `doc/topics/data/overview.rst`; `doc/reference/data/` |
-| ELCL configuration, names, paths, validation | `el::conf::Parser`, `el::conf::Document`, `el::conf::NamePath` | `doc/topics/conf/`; `doc/reference/conf/` |
+| ELCL configuration, validation, defaults, placeholders, value paths | `el::conf::Parser`, `el::conf::vr::RulesBuilder`, `Rules`, `Value::getTextOrThrow`; read [configuration](configuration.md) | `doc/topics/conf/`; `doc/reference/conf/` |
 | CLI options, choices, sets, help output | `el::Options`, `el::Option`, `el::OptionSet`, `el::OptionManager` | `doc/topics/options/`; `doc/reference/options/command_line_options.rst` |
 
 Choose monotonic time for elapsed measurements; calendar and civil-time types have different semantics.
