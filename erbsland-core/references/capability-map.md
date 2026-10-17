@@ -39,7 +39,7 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 | Standard input/output, formatted console output | `el::io` helpers and standard-stream proxies | `doc/topics/stream/standard_streams.rst` |
 | JSON, XML, BSON, CBOR, parse limits, value trees | `el::json`, `el::xml`, `el::bson`, `el::cbor` | `doc/topics/data/overview.rst`; `doc/reference/data/` |
 | ELCL configuration, validation, defaults, placeholders, value paths | `el::conf::Parser`, `el::conf::vr::RulesBuilder`, `Rules`, `Value::getTextOrThrow`; read [configuration](configuration.md) | `doc/topics/conf/`; `doc/reference/conf/` |
-| CLI options, choices, sets, help output | `el::Options`, `el::Option`, `el::OptionSet`, `el::OptionManager` | `doc/topics/options/`; `doc/reference/options/command_line_options.rst` |
+| CLI options, choices, sets, help output | `el::Options`, `el::OptionSet`, `el::OptionChoices`, `el::OptionChoiceEditor`, `el::OptionManager`; read [command-line options](command-line-options.md) | `doc/topics/options/`; `doc/reference/options/command_line_options.rst` |
 
 Choose monotonic time for elapsed measurements; calendar and civil-time types have different semantics.
 For streams, distinguish timeout from normal completion and failure. Verify filesystem collision, symlink, and

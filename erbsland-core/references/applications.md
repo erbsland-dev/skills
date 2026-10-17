@@ -4,6 +4,9 @@ Read this when starting an application from scratch or changing its control flow
 its work; these are five ways to organize one `el::Application` lifecycle, not five unrelated base classes.
 Paths below are relative to the Core dependency.
 
+When defining or parsing command-line options in any design, read [command-line options](command-line-options.md)
+for stable identifiers, documented options and choices, and validation before application work.
+
 ## Select the entry point
 
 | Design | Best fit | Entry point |
@@ -23,9 +26,13 @@ for action selection; parts when independently managed service lifecycles and de
 Create one application object in the process entry point and return `app.run()`. `run()` returns `int`, while application
 work callbacks and overridden `main()` return `el::ExitCode`.
 
-The lifecycle initializes the application, prepares registered parts, registers/parses options, runs application work,
-and cleans up. Help, version, and parse errors finish before main work. Handled Core exceptions use the framework's
-cleanup/reporting boundary; `cleanup()` must not block or throw.
+The lifecycle initializes the application, prepares registered parts, registers/parses options, handles parsed values,
+runs application work, and cleans up. In an application subclass, override `registerCommandLineOptions()` for
+definitions and `handleCommandLineOptions(const el::OptionValuesPtr &values)` to read, convert, and validate values
+into application state. This handling hook runs after successful parsing, before part option handling and `main()`.
+Help, version output, module overview, and parse errors skip the hook and main work.
+Override `parseCommandLine()` only when changing parsing itself, never merely to register or handle ordinary options.
+Handled Core exceptions use the framework's cleanup/reporting boundary; `cleanup()` must not block or throw.
 
 The default `Application::main()` chooses in this order:
 
@@ -67,8 +74,8 @@ Source: `doc/topics/core/function_based_applications.rst`.
 
 Derive from `el::Application` and inherit its constructors with `using Application::Application;`.
 Use `initialize()` for metadata/services and queue initial work through `events()->invoke()`.
-For work depending on parsed arguments, override `parseCommandLine()`, call `Application::parseCommandLine()` first,
-and arrange the work after it succeeds. Keep base `main()`; finish through `quit(exitCode)`.
+For work depending on parsed arguments, validate values and queue the first event in `handleCommandLineOptions()`.
+Keep base `main()`; finish through `quit(exitCode)`.
 
 Queued events are not dispatched for help/version output. Avoid starting unmanaged background work during initialization.
 If a custom `main()` performs preparation, return `runEventLoop()` to enter managed dispatch explicitly.
@@ -79,7 +86,8 @@ Source: `doc/topics/core/event_driven_applications.rst`.
 Derive from `el::Application`, inherit its constructors, and override
 `auto main() -> el::ExitCode`. Keep that method as the top-level sequence, with details in helpers or collaborators.
 Use `initialize()` for metadata/services and `registerCommandLineOptions(const el::OptionsPtr &options)` for definitions.
-The overridden main reads validated `optionValues()`; it does not manually parse help or errors.
+Use `handleCommandLineOptions(const el::OptionValuesPtr &values)` to read and validate options into structured state;
+the overridden main performs the work using that state. Let the framework handle help and parsing errors.
 
 Keep ordinary resources local where possible; use `cleanup() noexcept` for application-lifetime state.
 This design intentionally replaces command dispatch, callback dispatch, part startup, and event-loop entry.
@@ -107,6 +115,8 @@ Register implementations with `app.registerPart<ConcretePart>()` before `run()` 
 The application prepares the graph before option registration without starting part threads. Part option hooks run
 on the application thread; service lifecycle hooks run on dedicated part threads. Dependencies reach `Running`
 before dependent initialization; shutdown proceeds in reverse dependency order.
+Parts receive parsed values through their own `parseCommandLine(const el::OptionValuesPtr &values)` hook. This is
+distinct from `Application::parseCommandLine()` and is the correct part-level hook for handling option values.
 After preparation, resolve a service through `app.part<Interface>()`. Its methods must be thread-safe or enqueue work
 on its event target: startup ordering does not synchronize ordinary calls. Parts are one-shot services.
 

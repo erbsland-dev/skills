@@ -68,6 +68,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
 ## Read the reference for the current decision
 
 - Starting a new application or choosing its control flow: [application designs](references/applications.md).
+- Declaring, parsing, or reviewing command-line options, choices, or help:
+  [command-line options](references/command-line-options.md), before implementing option definitions or validation.
 - Error contracts, input validation, exception handling, or diagnostics: [error handling](references/errors.md),
   including `Result` and `ResultWithData` for expected outcomes.
 - Text processing, parsing, construction, or string costs: [strings](references/strings.md), before choosing an algorithm.

@@ -36,7 +36,10 @@ Do not trade a higher priority for a lower one without an explicit project requi
   - Classify failures according to the interface contract. Invalid external input is an expected failure;
     violating a documented caller precondition is a programming error.
   - An exception escaping a boundary whose contract forbids propagation may trigger a deliberate fail-fast policy.
-  - Treat disguising programming errors as recoverable operational failures as a design issue. 
+  - Treat disguising programming errors as recoverable operational failures as a design issue.
+  - Exhausted system resources are fatal failures, even when some of them are technically recoverable.
+    If a developer expects such extreme cases, they will implement their own memory/thread management.
+    Inside libraries and regular application code, we allow a process to terminate.
 - **Diagnosable failures:**
   - Deliberate fail-fast termination is valid for programming errors.
     It should preserve useful diagnostic context through the termination site, a debugger, a crash report,
