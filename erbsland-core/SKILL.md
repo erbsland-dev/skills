@@ -73,6 +73,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
 - Error contracts, input validation, exception handling, or diagnostics: [error handling](references/errors.md),
   including `Result` and `ResultWithData` for expected outcomes.
 - Text processing, parsing, construction, or string costs: [strings](references/strings.md), before choosing an algorithm.
+  For lowercase/uppercase, ELCL identifier normalization, or custom character mapping, removal, and truncation,
+  read [string transformations](references/string-transformation.md).
   For scalar conversion, character scans, or reader selection, read [string parsing](references/string-parsing.md).
   For output patterns or field collection, read [formatting](references/string-formatting.md) or
   [splitting](references/string-splitting.md), respectively.

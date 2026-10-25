@@ -13,7 +13,8 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 
 | Task / useful search terms | Start with | Local documentation |
 | --- | --- | --- |
-| Trim, replace, remove, normalize, case mapping | `el::String`, `el::Char`, `el::CharSet`; `trimmed`, `replacedAll`, `removedAll`, `transformed`, `normalized` | `doc/topics/text_strings/` |
+| Trim, replace, remove, Unicode normalization | `el::String`, `el::CharSet`; `trimmed`, `replacedAll`, `removedAll`, `normalized` | `doc/topics/text_strings/` |
+| Lowercase, uppercase, case folding, identifier normalization, custom mapping, filtering, truncation | `String::transformed` with `Char::toAsciiLowercase`, `toAsciiUppercase`, `toLowercase`, `toUppercase`, `toIdentifierNormalized`, `caseFolded`; `Char::noCodePoint()` / `Char::endOfData()`; read [transformations](string-transformation.md) | `doc/topics/text_strings/transforming_strings.rst`; `src/erbsland/text/Char.hpp` |
 | Extract fields, slice, split, delimiter, retain separators | `el::ByteRange`, `el::CpRange`, `StringList::fromSplit`, `StringSplitter::forEach`; read [splitting](string-splitting.md) | `doc/topics/text_strings/slicing_and_splitting_strings.rst`; `doc/reference/text/matching_and_splitting.rst` |
 | Concatenate fragments, join, format, construct efficiently | `String::fromJoined`, `StringList::join`, `el::StringEditor`, `el::AnyStringBuilder`, `el::StringFormat`; read [formatting](string-formatting.md) | `doc/topics/text_formatting/` |
 | Parse Boolean, integer, float, complete value, overflow | `String::toBooleanOrThrow`, `toIntegerOrThrow<T>`, `toFloatOrThrow`; read [parsing](string-parsing.md) for target-type checks and options | `doc/topics/text_parsing_and_encoding/converting_text_and_scalar_values.rst` |

@@ -103,6 +103,7 @@ Interpret **must** as required, **should** as the expected default unless there 
 - You **should** end every documented class, struct, and namespace-scope function API block with exactly one
   test-status marker.
   **Do not** mark inline types, constructors, methods, operators, or other members.
+  **Do not** mark examples, demos, and unit tests.
 - Use `@tested{ExampleTest OtherTest}` for one or more test-suite class names separated by spaces.
   End every name in `Test`; do not use paths or method selectors.
 - Use `@needtest{reason}` to identify missing coverage in one line.

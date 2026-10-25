@@ -6,6 +6,8 @@ Paths below are relative to the Core dependency.
 For the current operation, read [parsing and scanning](string-parsing.md) before choosing a cursor or reader,
 [formatting and joining](string-formatting.md) for reusable patterns and fragment assembly, or
 [splitting](string-splitting.md) for list collection and indexed sequential processing.
+For lowercase/uppercase, ELCL identifier normalization, or custom character mapping, filtering, and truncation,
+read [string transformations](string-transformation.md).
 
 ## Ownership and mutation
 
@@ -32,7 +34,9 @@ In a template function with more than five literals, place the literal using-dir
 | --- | --- |
 | Strip boundary characters | `trimmed()` with the appropriate `CharSet` and `StringSide` |
 | Change or remove occurrences | `replacedFirst()`, `replacedAll()`, `removedFirst()`, `removedAll()` |
-| Map decoded characters | `transformed()` with a `Char` mapping function |
+| Lowercase or uppercase text | `transformed(Char::toAsciiLowercase)` / `transformed(Char::toAsciiUppercase)`; use `Char::toLowercase` / `Char::toUppercase` for Unicode |
+| Normalize ELCL-style identifiers | `transformed(Char::toIdentifierNormalized)`; ASCII lowercase and spaces to underscores |
+| Map, filter, or stop at a decoded character | `transformed()` with a `Char` mapping function; `Char::noCodePoint()` skips, `Char::endOfData()` truncates; see [transformations](string-transformation.md) |
 | Normalize Unicode | `normalized(NormalizationForm)`; choose the form deliberately |
 | Locate text or character sets | `find()`, `findFirstOf()`, related operations and comparison functions |
 | Select a shared range | `slice()`, `first()`, `last()` with typed coordinates |
