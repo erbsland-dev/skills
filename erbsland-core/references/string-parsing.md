@@ -10,7 +10,7 @@ For collecting fields, read [splitting](string-splitting.md). For constructing o
 | Task | Preferred tool | Why |
 | --- | --- | --- |
 | Convert a string containing one Boolean, integer, or float | `String::toBoolean`, `toInteger<T>`, `toFloat<T>`, or their `OrThrow` forms | Expresses whole-value conversion, including range and trailing-input checks |
-| Locate a delimiter, substring, or first disallowed character | `find`, `findFirstOf`, `findFirstNotOf`, and corresponding last-match methods | Returns the position directly without a custom scan |
+| Locate a delimiter, substring, or first disallowed character | `find`, `findFirstOf`, `findFirstNotOf`, and corresponding last-match methods; see [matching](string-matching.md) | Returns the position directly without a custom scan |
 | Inspect decoded characters with custom state or stop/error conditions | `String::forEach` | Direct sequential iteration with loop control; optional built-in code-point index |
 | Resume from a native position, walk backward, or use a minimal cursor | `readCharAndAdvance`, `readCharAndRetreat`, `advance`, `retreat` | Operates on the existing string and a typed index without constructing a reader |
 | Parse a grammar with lookahead, rollback, captures, transformed buffers, or integer tokens | One `StringCharReader`, passed by reference to consuming helpers | Supplies the parser state and operations that would otherwise need custom code |
@@ -68,29 +68,10 @@ Sources: `src/erbsland/text/{IntegerParseOptions,IntegerParseFlag}.hpp`,
 
 ## Search before scanning
 
-Use a search result directly, preserving its native units. With `<erbsland/CharSet.hpp>`, `<erbsland/ByteRange.hpp>`,
-`<erbsland/ByteIndex.hpp>`, and `<erbsland/String.hpp>`:
-
-```cpp
-const auto text = el::String{"prefix[value]"_el};
-const auto opening = text.findFirstOf(el::CharSet{U'['});
-if (!opening.isNoIndex()) {
-    const auto prefix = text.slice(el::ByteRange{el::ByteIndex::zero(), opening});
-    // prefix is "prefix"; the source text is shared.
-}
-```
-
-`findFirstOf` matches any character in a set; use `find` for a substring. Use `findFirstNotOf` for the first character
-outside a permitted set instead of writing an inverted loop. Check `isNoIndex()` before using a search result in a range.
-
-A one-character `CharSet{U'['}` has a constexpr constructor and inline storage; it is appropriate directly at the
-call site. Core stores up to two normalized ranges inline. Constructing larger sets, parsing patterns, or building
-Unicode-property sets can do substantially more work and allocate. Cache an unchanged complex set as `static const`
-in repeated code, or retain it with the parser when it depends on configuration. Do not describe all `CharSet` use as
-expensive or rebuild a constant complex set for every character.
-
-Sources: `src/erbsland/text/CharSet.hpp`, `src/erbsland/text/u8/U8String.hpp`, and
-`doc/topics/text_strings/working_with_character_sets.rst`.
+Use a direct search when the task is locating text or a character from a set. The
+[matching reference](string-matching.md#validate-and-locate-code-points-with-charset) covers `CharSet` validation,
+first/last searches, native positions, a slicing example, and when to cache a set. Continue with a cursor or reader
+only when the surrounding parsing operation needs its state.
 
 ## Use the indexed `forEach` overload instead of a second counter
 

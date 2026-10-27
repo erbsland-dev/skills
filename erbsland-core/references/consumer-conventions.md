@@ -28,14 +28,15 @@ Public include flattening and namespace flattening are separate mechanisms. Sele
 
 | Category | Consumer spelling |
 | --- | --- |
-| Explicit domains | `el::cterm::Terminal`, `el::conf::Parser`, `el::re::RegEx`, `el::block::Rectangle` |
-| Specialized text APIs | `el::text::literals`, `el::text::pattern`, `el::text::fuzzy`, `el::text::base_n` |
+| Explicit domains | `el::cterm::Terminal`, `el::conf::Parser`, `el::re::Match`, `el::block::Rectangle` |
+| Selected regex entry point | `el::RegEx` with `<erbsland/RegEx.hpp>`; supporting regex types remain in `el::re` |
+| Specialized text APIs | `el::text::literals`, `el::pattern`, `el::fuzzy`, `el::text::base_n` |
 | Data-format namespaces | `el::json`, `el::bson`, `el::cbor`, `el::xml` |
 | Convenience aliases | `el::io` for standard-stream helpers; `el::sys_info` for machine-information queries |
 
 For an explicitly nondefault consumer configuration, inspect target definitions: `ERBSLAND_CORE_DO_NOT_FLATTEN_NS`
 keeps domain qualification, `ERBSLAND_NO_SHORT_NAMESPACE` disables `el`, and `ERBSLAND_SHORT_NAMESPACE` selects another
-alias. The actual setup is in `src/erbsland/core/Definitions.hpp` and `src/erbsland/core/MakeOneNamespace.hpp`.
+alias. The actual setup is in `src/erbsland/core/Definitions.hpp` and `src/erbsland/core/impl/MakeOneNamespace.hpp`.
 
 Avoid broad `using namespace erbsland` directives as a substitute for public spelling. For `_el` literal scope,
 follow [the string conventions](strings.md#literal-scope).

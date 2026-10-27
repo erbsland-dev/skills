@@ -3,7 +3,8 @@
 Read this for text processing, parsing, construction, or performance-sensitive string work.
 Paths below are relative to the Core dependency.
 
-For the current operation, read [parsing and scanning](string-parsing.md) before choosing a cursor or reader,
+For the current operation, read [matching](string-matching.md) for searches, character validation, patterns, regex,
+and fuzzy suggestions; [parsing and scanning](string-parsing.md) before choosing a cursor or reader;
 [formatting and joining](string-formatting.md) for reusable patterns and fragment assembly, or
 [splitting](string-splitting.md) for list collection and indexed sequential processing.
 For lowercase/uppercase, ELCL identifier normalization, or custom character mapping, filtering, and truncation,
@@ -38,11 +39,12 @@ In a template function with more than five literals, place the literal using-dir
 | Normalize ELCL-style identifiers | `transformed(Char::toIdentifierNormalized)`; ASCII lowercase and spaces to underscores |
 | Map, filter, or stop at a decoded character | `transformed()` with a `Char` mapping function; `Char::noCodePoint()` skips, `Char::endOfData()` truncates; see [transformations](string-transformation.md) |
 | Normalize Unicode | `normalized(NormalizationForm)`; choose the form deliberately |
-| Locate text or character sets | `find()`, `findFirstOf()`, related operations and comparison functions |
+| Match or locate text and character sets | `startsWith`, `endsWith`, `contains`, `count`, `find`, `containsOnly`, `containsOneOf`, `findFirstOf` and related methods; see [matching](string-matching.md) |
 | Select a shared range | `slice()`, `first()`, `last()` with typed coordinates |
 | Collect split fields | `StringList::fromSplit()` with a `CharSet` and explicit empty-field policy |
 | Sequentially split large text | `StringSplitter` with a `Char` or `CharSet` separator |
-| Recognize small wildcard shapes | `StringPattern`; check its limited syntax |
+| Recognize wildcard shapes or extract a pattern's middle | `StringPattern::fromGlob` / `fromDivider`; see [matching](string-matching.md#stringpattern-choose-divider-or-glob-semantics) |
+| Match regex captures or find fuzzy suggestions | `el::RegEx::compile` / `lazyCompile`, `el::fuzzy::Matcher`; see [matching](string-matching.md) |
 | Convert scalars from/to text | `toBoolean`, `toInteger<T>`, `toFloat<T>`, their `OrThrow` forms, and `from...` factories |
 | Construct fixed fragments | `String::fromJoined({...})` |
 | Join discovered fragments | `StringList::join()` |
@@ -50,7 +52,7 @@ In a template function with more than five literals, place the literal using-dir
 | Inspect decoded characters with loop control | `forEach()`; use the `CpIndex` callback overload when positions are needed |
 | Parse characters sequentially | `readCharAndAdvance()` for a lightweight cursor; one `StringCharReader` for captures, buffers, and complex parsing |
 
-For regular expressions, template rendering, and placeholder expansion, use [the capability map](capability-map.md#text).
+For template rendering and placeholder expansion, use [the capability map](capability-map.md#text).
 A `CharSet` represents a defined set of characters, not a multi-character delimiter or a quoted-field grammar.
 `StringList::fromSplit()` discards empty fields by default; `StringSplitter`'s default mode preserves them.
 With a splitter, test `isAtEnd()` rather than whether `next()` is empty.
