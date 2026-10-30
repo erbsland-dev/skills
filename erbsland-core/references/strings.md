@@ -76,6 +76,8 @@ for the entire operation.
 
 ## Coordinates and parsing
 
+Read [unit types](unit-types.md) for typed index arithmetic, intent conversions, range bounds, and special states.
+
 `String::length()` measures UTF-8 bytes. `CpIndex` and `CpLength` count decoded code points, not grapheme clusters or
 terminal cells. `displayWidth()` is an approximate per-code-point measurement, not full layout/shaping.
 

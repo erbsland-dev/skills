@@ -53,7 +53,7 @@ throwing/nonthrowing behavior before choosing an operation.
 | --- | --- | --- |
 | Bytes, shared immutable data, mutation, endian access, bit fields | `el::ByteBlock`, `el::ByteBlockEditor`, `el::ByteReader`, `el::ByteWriter`, `el::BitReader`, `el::BitWriter` | `doc/reference/mem/memory_and_byte_data.rst` |
 | Lists, maps, sets, enum flags, results, coroutines | `el::List`, `el::Map`, `el::HashMap`, `el::Set`, `el::EnumFlags`, `el::Result`, `el::CoTask` | `doc/reference/util/utilities.rst` |
-| Typed indexes, counts, offsets, ranges, versions | `el::ByteIndex`, `el::ByteLength`, `el::CpIndex`, `el::CpLength`, `el::ItemCount`, `el::Version` | `doc/reference/unit/units_and_versions.rst` |
+| Typed indexes, counts, offsets, ranges, versions | `el::ByteIndex`, `el::ByteLength`, `el::CpIndex`, `el::CpLength`, `el::ItemCount`, `el::Version`; read [unit types](unit-types.md) for sequence coordinates, arithmetic, and conversions | `doc/reference/unit/units_and_versions.rst` |
 | Overflow handling, saturation, large integers | `el::BoundedInteger`, `el::SaturatingInteger`, `el::BigInteger`; search required arithmetic policy | `doc/reference/math/mathematics.rst` |
 | Error handling, results, exceptions, diagnostic documents | `el::ApplicationError`, `el::Result`, `el::ResultWithData`, `el::DiagnosticHelper`; read [error handling](errors.md) for consumer patterns | `doc/topics/err/`; `doc/reference/err/errors_and_diagnostics.rst` |
 | App startup, lifecycle, service parts | `el::Application`, `el::ApplicationPart`, `el::ApplicationPartManager`; read [application designs](applications.md) when choosing control flow | `doc/topics/core/choosing_an_application_design.rst` |
