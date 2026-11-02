@@ -21,8 +21,10 @@ suitable functionality or when an external interface requires standard-library o
 - Use the shortest public per-type include: `<erbsland/String.hpp>`, not `<erbsland/text/String.hpp>`.
 - Use `String` for ordinary text values and parameters; pass `"text"_el` literals directly when accepted.
 - Keep required standard-library and native conversions at boundaries, outside processing loops where possible.
-- Keep sequence coordinates in matching unit types: `el::ByteIndex` / `el::ByteLength`, `el::CpIndex` / `el::CpLength`,
-  `el::ItemIndex` / `el::ItemCount`, and their offset/range types. Use typed arithmetic and named intent conversions.
+- Keep sequence coordinates in matching unit types: `el::ByteIndex` / `el::ByteCount`, `el::CpIndex` / `el::CpCount`,
+  `el::U16Index` / `el::U16Count`, `el::ItemIndex` / `el::ItemCount`, and their offset/range types. Use typed arithmetic
+  and named intent conversions. Construct numeric constants directly; use `fromInteger()` / `fromIntegerOrThrow()`
+  or the size factories for runtime integers.
 
 ## Detect Core: take the usual path first
 
@@ -67,8 +69,9 @@ header alone does not expose its methods. Verify Core naming and units instead o
 
 ## Read the reference for the current decision
 
-- Choosing sequence units, converting indexes/counts/offsets, handling ranges, or writing indexed loops:
-  [unit types](references/unit-types.md), including saturation, special states, and native API boundaries.
+- Choosing sequence units, converting indexes/counts/offsets, handling ranges, writing indexed loops, or
+  constructing versions: [unit types](references/unit-types.md), including constant versus runtime construction,
+  saturation, special states, and native API boundaries.
 - Starting a new application or choosing its control flow: [application designs](references/applications.md).
 - Declaring, parsing, or reviewing command-line options, choices, or help:
   [command-line options](references/command-line-options.md), before implementing option definitions or validation.

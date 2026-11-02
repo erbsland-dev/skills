@@ -52,7 +52,7 @@ The default constructor and `parserDefault()` do not enable the same sign flags.
 | A fixed decimal/hexadecimal/binary/octal grammar | `setFixedBase(IntegerBase::...)`; fixed-base parsing rejects base prefixes |
 | Leading signs | `stringDefault()` enables `AcceptMinusSign` and `IgnorePlusSign`; clear flags when forbidden |
 | Group separators | Add `IntegerParseFlag::AllowSeparator`; `setSeparator()` changes the default apostrophe |
-| Digit-count bounds | `setMinimumDigits()`, `setMaximumDigits()` with `CpLength` |
+| Digit-count bounds | `setMinimumDigits()`, `setMaximumDigits()` with `CpCount` |
 | Exact-width decimal or hex token | `fixedDecimal(count)` / `fixedHex(count)`; these also set `StopAtMaximum` |
 | Accept a numeric prefix and ignore the suffix | Add `IgnoreTrailingChars` only when that is the input contract |
 

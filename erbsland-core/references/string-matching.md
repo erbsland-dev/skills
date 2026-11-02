@@ -176,11 +176,11 @@ it. Keep this syntax distinct from `StringPattern` bracket sets and regex charac
 
 ### Preserve native positions
 
-| Subject | Native index / length / range |
+| Subject | Native index / count / range |
 | --- | --- |
-| `String`, `U8String` | `ByteIndex`, `ByteLength`, `ByteRange` |
-| `U16String` | `U16DataIndex`, `U16DataLength`, `U16DataRange` |
-| `U32String` | `CpIndex`, `CpLength`, `CpRange` |
+| `String`, `U8String` | `ByteIndex`, `ByteCount`, `ByteRange` |
+| `U16String` | `U16Index`, `U16Count`, `U16Range` |
+| `U32String` | `CpIndex`, `CpCount`, `CpRange` |
 
 Use returned positions directly, preserving encoded boundaries. UTF-8 byte offsets and UTF-16 code-unit offsets
 are not decoded-character counts. With `<erbsland/ByteIndex.hpp>`, `<erbsland/ByteRange.hpp>`,
@@ -244,12 +244,12 @@ The matcher uses bounded Damerau-Levenshtein distance over decoded code points, 
 counting as one edit. Set the distance and result limits for the suggestion task and pass candidates in preferred
 tie order. It returns deduplicated results ordered by distance, preserving candidate order for ties.
 
-With `<erbsland/fuzzy/Matcher.hpp>`, `<erbsland/fuzzy/Match.hpp>`, `<erbsland/Char.hpp>`, `<erbsland/CpLength.hpp>`,
+With `<erbsland/fuzzy/Matcher.hpp>`, `<erbsland/fuzzy/Match.hpp>`, `<erbsland/Char.hpp>`, `<erbsland/CpCount.hpp>`,
 `<erbsland/ItemCount.hpp>`, `<erbsland/String.hpp>`, and `<erbsland/StringList.hpp>`:
 
 ```cpp
 auto matcher = el::fuzzy::Matcher{"senosr"_el};
-matcher.setMaximumDistance(el::CpLength{1});
+matcher.setMaximumDistance(el::CpCount{1});
 matcher.setMaximumResults(el::ItemCount{3});
 matcher.setComparisonFn(el::Char::compareAsciiFolded);
 const auto matches = matcher.findMatches(el::StringList{{"sensor"_el, "status"_el}});

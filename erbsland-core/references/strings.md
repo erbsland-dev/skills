@@ -66,7 +66,7 @@ With a splitter, test `isAtEnd()` rather than whether `next()` is empty.
 | Dependent mutations to one working value | Use a local `StringEditor`; balance its initial copy against saved intermediate results. Edits can invalidate earlier positions. |
 | Fixed fragments | `String::fromJoined()` sizes and allocates final character storage once. |
 | Fragments discovered in a loop | Collect lightweight handles in `StringList`, then `join()`; the list can grow, but joining sizes final character storage once. |
-| An editor already needed for mutation | When final native length is known, `reserve()` once before appending, not before each append. UTF-8 capacity uses `ByteLength`. |
+| An editor already needed for mutation | When final native length is known, `reserve()` once before appending, not before each append. UTF-8 capacity uses `ByteCount`. |
 | Cross-width or formatted construction | `AnyStringBuilder` appends values without temporary strings, but can still grow/reallocate; pre-size it when capacity is known. |
 | Formatting into an existing builder | Retain a parsed `StringFormat` and use `appendTo()` to avoid an intermediate formatted result. |
 
@@ -78,7 +78,7 @@ for the entire operation.
 
 Read [unit types](unit-types.md) for typed index arithmetic, intent conversions, range bounds, and special states.
 
-`String::length()` measures UTF-8 bytes. `CpIndex` and `CpLength` count decoded code points, not grapheme clusters or
+`String::length()` measures UTF-8 bytes. `CpIndex` and `CpCount` use decoded code points, not grapheme clusters or
 terminal cells. `displayWidth()` is an approximate per-code-point measurement, not full layout/shaping.
 
 Use byte positions returned by search/iteration directly. Repeated `charAt(CpIndex)` calls can scan from the start
