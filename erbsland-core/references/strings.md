@@ -7,8 +7,8 @@ For the current operation, read [matching](string-matching.md) for searches, cha
 and fuzzy suggestions; [parsing and scanning](string-parsing.md) before choosing a cursor or reader;
 [formatting and joining](string-formatting.md) for reusable patterns and fragment assembly, or
 [splitting](string-splitting.md) for list collection and indexed sequential processing.
-For lowercase/uppercase, ELCL identifier normalization, or custom character mapping, filtering, and truncation,
-read [string transformations](string-transformation.md).
+For casing, capitalization, camel-case word conversion, whitespace simplification, ELCL identifier normalization,
+or custom character mapping, filtering, and truncation, read [string transformations](string-transformation.md).
 
 ## Ownership and mutation
 
@@ -35,9 +35,12 @@ In a template function with more than five literals, place the literal using-dir
 | --- | --- |
 | Strip boundary characters | `trimmed()` with the appropriate `CharSet` and `StringSide` |
 | Change or remove occurrences | `replacedFirst()`, `replacedAll()`, `removedFirst()`, `removedAll()` |
-| Lowercase or uppercase text | `transformed(Char::toAsciiLowercase)` / `transformed(Char::toAsciiUppercase)`; use `Char::toLowercase` / `Char::toUppercase` for Unicode |
-| Normalize ELCL-style identifiers | `transformed(Char::toIdentifierNormalized)`; ASCII lowercase and spaces to underscores |
-| Map, filter, or stop at a decoded character | `transformed()` with a `Char` mapping function; `Char::noCodePoint()` skips, `Char::endOfData()` truncates; see [transformations](string-transformation.md) |
+| Lowercase or uppercase text | `el::toAsciiLowercase(text)` / `el::toAsciiUppercase(text)`; use `el::toLowercase(text)` / `el::toUppercase(text)` for Unicode |
+| Fold case or apply capitalization | `el::toCaseFolded(text)`, `el::toCapitalized(text)`, `el::toCapitalization(text, capitalization)`; capitalization also has `toAscii...` variants |
+| Normalize ELCL-style identifiers | `el::toIdentifierNormalized(text)`; ASCII lowercase and spaces to underscores |
+| Convert between words and camel case | `el::toCamelCaseFromWords(text)` / `el::toWordsFromCamelCase(text)` and their `toAscii...` variants; see [transformations](string-transformation.md) for separators and casing |
+| Trim and collapse whitespace runs | `el::toWhitespaceSimplified(text)` / `el::toAsciiWhitespaceSimplified(text)`; optional output separator defaults to a space |
+| Apply custom mapping, filtering, or truncation | `transformed()` with a custom `Char` mapping function; `Char::noCodePoint()` skips, `Char::endOfData()` truncates; see [transformations](string-transformation.md) |
 | Normalize Unicode | `normalized(NormalizationForm)`; choose the form deliberately |
 | Match or locate text and character sets | `startsWith`, `endsWith`, `contains`, `count`, `find`, `containsOnly`, `containsOneOf`, `findFirstOf` and related methods; see [matching](string-matching.md) |
 | Select a shared range | `slice()`, `first()`, `last()` with typed coordinates |
@@ -52,6 +55,10 @@ In a template function with more than five literals, place the literal using-dir
 | Inspect decoded characters with loop control | `forEach()`; use the `CpIndex` callback overload when positions are needed |
 | Parse characters sequentially | `readCharAndAdvance()` for a lightweight cursor; one `StringCharReader` for captures, buffers, and complex parsing |
 
+Include `<erbsland/StringTransformations.hpp>` for the common transformation free functions. Prefer them over
+`transformed()` callbacks for built-in operations. They require a concrete Core string or editor; wrap a literal in
+`el::String{...}` for these calls. Keep `transformed()` for custom character mappings.
+
 For template rendering and placeholder expansion, use [the capability map](capability-map.md#text).
 A `CharSet` represents a defined set of characters, not a multi-character delimiter or a quoted-field grammar.
 `StringList::fromSplit()` discards empty fields by default; `StringSplitter`'s default mode preserves them.
@@ -62,7 +69,7 @@ With a splitter, test `isAtEnd()` rather than whether `next()` is empty.
 | Workflow | Choice and cost |
 | --- | --- |
 | Read-only slices and trims | Share backing storage without copying selected characters. Small slices can retain a large source allocation. |
-| One transformation or independent derived values | Use `String` operations. Changed text generally needs result storage; unchanged `transformed()` returns the original value. Check storage reuse per operation. |
+| One transformation or independent derived values | Use `String` methods or `StringTransformations.hpp` free functions. Changed text generally needs result storage; unchanged common transformations and `transformed()` share source storage. Check storage reuse per operation. |
 | Dependent mutations to one working value | Use a local `StringEditor`; balance its initial copy against saved intermediate results. Edits can invalidate earlier positions. |
 | Fixed fragments | `String::fromJoined()` sizes and allocates final character storage once. |
 | Fragments discovered in a loop | Collect lightweight handles in `StringList`, then `join()`; the list can grow, but joining sizes final character storage once. |
@@ -145,10 +152,10 @@ when appended text exceeds its capacity.
 ### Split, transform, sort, and join
 
 ```cpp
-#include <erbsland/Char.hpp>
 #include <erbsland/CharSet.hpp>
 #include <erbsland/String.hpp>
 #include <erbsland/StringList.hpp>
+#include <erbsland/StringTransformations.hpp>
 
 namespace app {
 
@@ -160,7 +167,7 @@ auto reassemble(const el::String &source) -> el::String {
     auto result = el::StringList{};
     result.reserve(fields.count());
     for (const auto &field : fields) {
-        result.append(field.trimmed().transformed(el::Char::toAsciiUppercase));
+        result.append(el::toAsciiUppercase(field.trimmed()));
     }
     result.sort();
     return result.join(", "_el);

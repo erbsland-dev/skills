@@ -20,6 +20,8 @@ suitable functionality or when an external interface requires standard-library o
 - Use the short `el` alias and flattened names: `el::String`, not `erbsland::text::String`.
 - Use the shortest public per-type include: `<erbsland/String.hpp>`, not `<erbsland/text/String.hpp>`.
 - Use `String` for ordinary text values and parameters; pass `"text"_el` literals directly when accepted.
+- Prefer the free functions in `<erbsland/StringTransformations.hpp>` for common string transformations;
+  keep `transformed()` for custom character mappings.
 - Keep required standard-library and native conversions at boundaries, outside processing loops where possible.
 - Keep sequence coordinates in matching unit types: `el::ByteIndex` / `el::ByteCount`, `el::CpIndex` / `el::CpCount`,
   `el::U16Index` / `el::U16Count`, `el::ItemIndex` / `el::ItemCount`, and their offset/range types. Use typed arithmetic
@@ -80,8 +82,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
 - Text processing, parsing, construction, or string costs: [strings](references/strings.md), before choosing an algorithm.
   For literal searches, character validation, glob/divider patterns, regex, or fuzzy suggestions, read
   [string matching](references/string-matching.md), including `el::RegEx` and comparison callbacks.
-  For lowercase/uppercase, ELCL identifier normalization, or custom character mapping, removal, and truncation,
-  read [string transformations](references/string-transformation.md).
+  For casing, capitalization, camel-case word conversion, whitespace simplification, ELCL identifier normalization,
+  or custom character mapping, removal, and truncation, read [string transformations](references/string-transformation.md).
   For scalar conversion, character scans, or reader selection, read [string parsing](references/string-parsing.md).
   For output patterns or field collection, read [formatting](references/string-formatting.md) or
   [splitting](references/string-splitting.md), respectively.
