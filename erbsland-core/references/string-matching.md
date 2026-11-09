@@ -15,6 +15,7 @@ suggestions. `String` aliases `U8String`; the literal, character-set, pattern, a
 | Recognize a small prefix/suffix shape and extract its middle | `StringPattern::fromDivider` |
 | Match a complete glob pattern | `StringPattern::fromGlob`; `fromPosixGlob` for its distinct compatibility dialect |
 | Match structured text with alternatives, repetitions, and captures | `el::RegEx::compile` or `el::RegEx::lazyCompile` |
+| Apply literal regexes in simple script-like code | `el::re::match`, `fullMatch`, `findFirst`, and related cached helpers |
 | Rank approximate candidate strings | `el::fuzzy::Matcher`, returning `el::fuzzy::Match` results |
 
 Prefer these complete operations over hand-written character loops, temporary lowercase copies, or conversion to
@@ -30,6 +31,10 @@ length for a fixed compiled pattern. Pattern size, captures, and input costs sti
 `el::re::Settings` provides execution and complexity limits when the application needs them.
 
 ### Compile once and reuse the shared expression
+
+For the most efficient repeated matching of a fixed pattern, keep a named `static const auto` expression compiled with
+`el::RegEx::compile(...)` and call its methods directly. This avoids both recompilation and the lookup required by
+the cached convenience functions below.
 
 - `el::RegEx::compile(pattern)` compiles and validates immediately and returns `el::re::RegExPtr`, a shared pointer.
   Call methods with `->`; do not construct `RegEx{pattern}` or copy the `std::regex` construction/matching model.
@@ -58,6 +63,37 @@ if (const auto match = cRecord->fullMatch(text)) {
 
 Use `lazyCompile` in the same factory position when deferral is useful. `RegEx` is flattened into `el`, while its
 supporting types such as `el::re::Match`, `RegExError`, `Flags`, `Settings`, and `Input` remain in `el::re`.
+
+### Cached literal expressions for simple script-like code
+
+Use the free functions in `<erbsland/re/RegExCached.hpp>` when concise calls suit trivial script-like code.
+`<erbsland/RegEx.hpp>` also exposes them. The pattern comes first, followed by the subject:
+
+```cpp
+const auto text = el::String{"sensor:42"_el};
+if (const auto match = el::re::match(R"((?<name>[a-z]+):(?<value>[0-9]+))"_el, text)) {
+    const auto name = match->content("name"_el);
+    // name shares the subject's storage: "sensor".
+}
+```
+
+Also include `<erbsland/String.hpp>` and `<erbsland/re/Match.hpp>`, with the literal namespace in scope as above.
+Use `fullMatch` instead of `match` when trailing text must be rejected.
+
+- `el::re::compile(pattern)` returns an owning immutable `el::re::ConstRegExPtr` from a bounded application-scoped
+  cache. Patterns must be `StringLiteral` values such as `"..."_el`; compilation uses default settings and supports
+  inline flags. Runtime `String` patterns are not accepted.
+- `el::re::match`, `fullMatch`, `findFirst`, `findAll`, and `collectAll` preserve the corresponding method's semantics
+  and result types for UTF-8, UTF-16, and UTF-32 Core string subjects; the pattern remains a UTF-8 literal.
+- `el::re::replaceAll(pattern, text, replacement)` accepts a UTF-8 subject and literal pattern and replacement.
+  Replacement expressions use `{0}` / `{}` for the full match, `{1}` / `{name}` for captures, and `{{` / `}}` for
+  literal braces. Only compiled patterns are cached; replacement expressions are still parsed on each call.
+- Cache eviction does not invalidate returned expressions or matches. Cached `findAll` compiles before returning
+  its generator, then matches lazily while retaining its expression and subject. Compilation and execution errors
+  still propagate as `RegExError`; caching does not turn invalid patterns into ordinary mismatches.
+
+Keep the named compiled expression for hot loops and repeated fixed patterns. Use `el::RegEx::compile` with an
+appropriate owner for dynamic patterns, custom settings, streams, custom inputs, or replacement callbacks.
 
 ### Select the matching boundary deliberately
 
@@ -262,7 +298,7 @@ Use fuzzy matching for suggestions where approximate equality is intended, keepi
 
 Paths are relative to the Core dependency. Consult only the relevant contract:
 
-- Regex: `src/erbsland/re/{RegEx,Match,Match16,Match32,InputBase}.hpp`,
+- Regex: `src/erbsland/re/{RegEx,RegExCached,Match,Match16,Match32,InputBase}.hpp`,
   `doc/reference/re/regular_expressions.rst`, and `doc/topics/re/syntax/`.
 - Strings and comparators: `src/erbsland/text/{u8/U8String,u16/U16String,u32/U32String,Char,CharCompareFn}.hpp`
   and `doc/topics/text_strings/comparing_strings.rst`.

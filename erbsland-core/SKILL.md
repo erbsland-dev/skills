@@ -20,8 +20,11 @@ suitable functionality or when an external interface requires standard-library o
 - Use the short `el` alias and flattened names: `el::String`, not `erbsland::text::String`.
 - Use the shortest public per-type include: `<erbsland/String.hpp>`, not `<erbsland/text/String.hpp>`.
 - Use `String` for ordinary text values and parameters; pass `"text"_el` literals directly when accepted.
+- Prefer `el::join(...)` from `<erbsland/StringJoins.hpp>` over `String::fromJoined(...)` for fixed string fragments.
 - Prefer the free functions in `<erbsland/StringTransformations.hpp>` for common string transformations;
   keep `transformed()` for custom character mappings.
+- Compile and retain regexes for repeated matching; reserve `el::re` cached helpers for simple script-like code.
+- Use `el::FifoCache` or `el::LruCache` for bounded caching before implementing a custom eviction container.
 - Keep required standard-library and native conversions at boundaries, outside processing loops where possible.
 - Keep sequence coordinates in matching unit types: `el::ByteIndex` / `el::ByteCount`, `el::CpIndex` / `el::CpCount`,
   `el::U16Index` / `el::U16Count`, `el::ItemIndex` / `el::ItemCount`, and their offset/range types. Use typed arithmetic
@@ -62,7 +65,7 @@ Without usable indexed evidence, search inside the dependency's relevant domain 
 
 ```sh
 rg -n 'split|separator|shared slice' doc/topics/text_strings doc/reference/text
-rg -n 'StringSplitter|fromJoined|replacedAll' src/erbsland/text
+rg -n 'StringSplitter|StringJoins|join|replacedAll' src/erbsland/text
 ```
 
 Follow aliases, base classes, and included template implementations. `String` aliases `U8String`; the short alias
@@ -81,7 +84,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
   including `Result` and `ResultWithData` for expected outcomes.
 - Text processing, parsing, construction, or string costs: [strings](references/strings.md), before choosing an algorithm.
   For literal searches, character validation, glob/divider patterns, regex, or fuzzy suggestions, read
-  [string matching](references/string-matching.md), including `el::RegEx` and comparison callbacks.
+  [string matching](references/string-matching.md), including retained `el::RegEx` expressions, cached literal helpers,
+  and comparison callbacks.
   For casing, capitalization, camel-case word conversion, whitespace simplification, ELCL identifier normalization,
   or custom character mapping, removal, and truncation, read [string transformations](references/string-transformation.md).
   For scalar conversion, character scans, or reader selection, read [string parsing](references/string-parsing.md).
@@ -89,6 +93,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
   [splitting](references/string-splitting.md), respectively.
 - ELCL configuration loading, validation rules, defaults, placeholders, or value lookup:
   [configuration](references/configuration.md), before implementing manual validation, substitution, or tree traversal.
+- Bounded caching, eviction policy, or lookup ownership: [caches](references/caches.md), including `FifoCache` versus
+  `LruCache` and when reads refresh recency.
 - Public-header selection, nested namespace exceptions, or adapting test code: [consumer conventions](references/consumer-conventions.md).
 
 Load only references relevant to the task. Preserve an established application's design unless the requested change

@@ -48,8 +48,9 @@ In a template function with more than five literals, place the literal using-dir
 | Sequentially split large text | `StringSplitter` with a `Char` or `CharSet` separator |
 | Recognize wildcard shapes or extract a pattern's middle | `StringPattern::fromGlob` / `fromDivider`; see [matching](string-matching.md#stringpattern-choose-divider-or-glob-semantics) |
 | Match regex captures or find fuzzy suggestions | `el::RegEx::compile` / `lazyCompile`, `el::fuzzy::Matcher`; see [matching](string-matching.md) |
+| Use literal regexes in simple script-like code | `el::re::match`, `fullMatch`, `findFirst`, and related cached helpers; see [cached literal expressions](string-matching.md#cached-literal-expressions-for-simple-script-like-code) |
 | Convert scalars from/to text | `toBoolean`, `toInteger<T>`, `toFloat<T>`, their `OrThrow` forms, and `from...` factories |
-| Construct fixed fragments | `String::fromJoined({...})` |
+| Construct fixed fragments | `el::join(a, b, ...)` from `<erbsland/StringJoins.hpp>` |
 | Join discovered fragments | `StringList::join()` |
 | Format reusable structured output | `StringFormat::build()` or `appendTo()` |
 | Inspect decoded characters with loop control | `forEach()`; use the `CpIndex` callback overload when positions are needed |
@@ -71,7 +72,7 @@ With a splitter, test `isAtEnd()` rather than whether `next()` is empty.
 | Read-only slices and trims | Share backing storage without copying selected characters. Small slices can retain a large source allocation. |
 | One transformation or independent derived values | Use `String` methods or `StringTransformations.hpp` free functions. Changed text generally needs result storage; unchanged common transformations and `transformed()` share source storage. Check storage reuse per operation. |
 | Dependent mutations to one working value | Use a local `StringEditor`; balance its initial copy against saved intermediate results. Edits can invalidate earlier positions. |
-| Fixed fragments | `String::fromJoined()` sizes and allocates final character storage once. |
+| Fixed fragments | Prefer `el::join(...)`; multiple inputs use `fromJoined`'s final-size planning, while a single input shares storage. |
 | Fragments discovered in a loop | Collect lightweight handles in `StringList`, then `join()`; the list can grow, but joining sizes final character storage once. |
 | An editor already needed for mutation | When final native length is known, `reserve()` once before appending, not before each append. UTF-8 capacity uses `ByteCount`. |
 | Cross-width or formatted construction | `AnyStringBuilder` appends values without temporary strings, but can still grow/reallocate; pre-size it when capacity is known. |
@@ -185,6 +186,7 @@ allocates final character storage once.
 ```cpp
 #include <erbsland/String.hpp>
 #include <erbsland/StringFormat.hpp>
+#include <erbsland/StringJoins.hpp>
 
 namespace app {
 
@@ -192,7 +194,7 @@ using namespace el::text::literals;
 
 /// Join a fixed set of label fragments.
 auto directJoin(const el::String &name) -> el::String {
-    return el::String::fromJoined({"station: "_el, name, " ready"_el});
+    return el::join("station: "_el, name, " ready"_el);
 }
 
 /// Reuse a parsed pattern for structured labels.

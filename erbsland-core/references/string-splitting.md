@@ -23,7 +23,8 @@ const auto reversed = el::StringList::fromSplit(text, el::CharSet{U'.'}, el::Ite
 
 The result is `omega..alpha`. Splitting produces shared slices; reversing reorders handles, and joining sizes the
 final character storage once. The list itself still needs storage. An empty join separator concatenates fragments.
-For a fixed number of fragments, prefer `String::fromJoined({...})`; see [formatting and joining](string-formatting.md).
+For a fixed number of fragments, prefer `el::join(...)` from `<erbsland/StringJoins.hpp>`;
+see [formatting and joining](string-formatting.md).
 
 A `CharSet` denotes alternative separator characters, not a multi-character delimiter, CSV quoting, or an escape-aware
 grammar. Use the appropriate parser when separators can occur inside quoted or escaped fields.

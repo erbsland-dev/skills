@@ -30,6 +30,8 @@ Public include flattening and namespace flattening are separate mechanisms. Sele
 | --- | --- |
 | Explicit domains | `el::cterm::Terminal`, `el::conf::Parser`, `el::re::Match`, `el::block::Rectangle` |
 | Selected regex entry point | `el::RegEx` with `<erbsland/RegEx.hpp>`; supporting regex types remain in `el::re` |
+| Cached regex helpers | `el::re::match`, `fullMatch`, and related functions with `<erbsland/re/RegExCached.hpp>`; also exposed by `<erbsland/RegEx.hpp>` |
+| String joining | `el::join` with `<erbsland/StringJoins.hpp>` |
 | Specialized text APIs | `el::text::literals`, `el::pattern`, `el::fuzzy`, `el::text::base_n` |
 | Data-format namespaces | `el::json`, `el::bson`, `el::cbor`, `el::xml` |
 | Convenience aliases | `el::io` for standard-stream helpers; `el::sys_info` for machine-information queries |
