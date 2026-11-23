@@ -79,11 +79,21 @@ class ExampleClass : public ExampleSuperClass {
 
     /// Represent the stored numeric value.
     using Value = int;
+    /// Increment used when a caller omits the amount.
+    static constexpr Value cDefaultIncrement = 1;
     /// Group the object's descriptive labels.
     struct Labels {
         el::String _name; ///< The name.
         el::String _description; ///< The description.
     };
+
+public:
+    /// Largest value accepted by increase().
+    static constexpr Value cMaximumValue = 100;
+
+protected:
+    /// Smallest value subclasses may store.
+    static constexpr Value cMinimumValue = 0;
 
 public:
     /// Create a named value.
@@ -127,7 +137,7 @@ public: // operations
     /// @param value The positive amount to add.
     /// @return The updated numeric value.
     /// @throws el::ParameterError If the amount is zero or negative, or the result would overflow.
-    [[nodiscard]] auto increase(int value) -> int;
+    [[nodiscard]] auto increase(int value = cDefaultIncrement) -> int;
     // ...
 
 public: // conversion

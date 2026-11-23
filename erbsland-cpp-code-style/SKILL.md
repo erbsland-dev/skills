@@ -95,7 +95,9 @@ Interpret **must** as required, **should** as the expected default unless there 
 - For non-trivial methods, you **should** also document applicable parameter ranges, thread safety, limits, edge cases,
   error conditions, and side effects.
 - Move extensive explanations to linked reference or topic documentation.
-- Give every data member and enum member a brief trailing `///<` description.
+- Give every namespace-scope or static class constant a brief `///` description immediately before its declaration.
+  Explain what the constant selects, controls, or represents at its use site.
+- Give every instance data member and enum member a brief trailing `///<` description.
   If this would make the line too long, place a regular `///` description immediately before the member instead.
 
 ### Test status
@@ -122,7 +124,7 @@ section layout.
 
 Label placement:
 
-- Type and data-member sections **must not** have a label, regardless of access.
+- Type, constant, and data-member sections **must not** have a label, regardless of access.
 - Public method sections **must** have a label, except for the construction and operator sections.
 - Protected method sections **should** have a label.
 - Private method sections **may** have a label only when the class declaration exceeds 100 lines and the label improves
@@ -130,8 +132,12 @@ Label placement:
 
 Use this usual section order:
 
-1. Place private friends, nested types, enums, and aliases in dependency order.
-2. Place public types in dependency order.
+1. Place friends first, followed by private constants, nested types, enums, and aliases.
+   Use the implicit private section of a class or an explicit `private:` section of a struct.
+   Place a type or alias before any constant that needs it.
+2. Place public and then protected constants and types in their respective access sections, before construction,
+   methods, and instance data. A struct may use its default public access for its opening public section.
+   Prefer keeping constants of the same access together wherever dependencies permit.
 3. Order the construction section as follows: default constructor, other constructors, destructor, copy constructor,
    move constructor, copy assignment, then move assignment.
    Put explicitly defaulted or deleted members at the end of this section in a defaults group, as described below.

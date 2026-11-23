@@ -1,15 +1,14 @@
 ---
 name: erbsland-core
-description: "Use only when developing, reviewing, or refactoring applications that consume Erbsland Core as a dependency. Discover existing Core APIs, choose efficient string operations and typed sequence coordinates, and use public includes and consumer namespace spelling. Do not use when working on Erbsland Core itself, including its implementation, tests, demos, documentation, or build system. Standalone Erbsland libraries are outside this skill's scope."
+description: "Use when developing, reviewing, or refactoring applications consuming Erbsland Core. Discover Core APIs, choose string operations, time types, and typed sequence coordinates, and use public includes and consumer namespaces. Excludes work on Core itself (implementation, tests, demos, documentation, build system) and standalone Erbsland libraries."
 ---
 
 # Erbsland Core
 
 ## Scope
 
-Use this skill only for applications consuming Core, including their own tests. Do not apply it to work on Core
-itself: implementation, internal APIs, tests, demos, documentation, generators, or build configuration.
-Reading those files to understand an API is supported; determine scope from the code being developed.
+Use this skill for applications consuming Core, including their tests. Reading Core internals to understand an API
+is supported; developing Core itself is outside scope.
 
 ## Consumer defaults
 
@@ -20,16 +19,15 @@ suitable functionality or when an external interface requires standard-library o
 - Use the short `el` alias and flattened names: `el::String`, not `erbsland::text::String`.
 - Use the shortest public per-type include: `<erbsland/String.hpp>`, not `<erbsland/text/String.hpp>`.
 - Use `String` for ordinary text values and parameters; pass `"text"_el` literals directly when accepted.
-- Prefer `el::join(...)` from `<erbsland/StringJoins.hpp>` over `String::fromJoined(...)` for fixed string fragments.
-- Prefer the free functions in `<erbsland/StringTransformations.hpp>` for common string transformations;
-  keep `transformed()` for custom character mappings.
-- Compile and retain regexes for repeated matching; reserve `el::re` cached helpers for simple script-like code.
+- Prefer `el::join` for fixed fragments, free string transformations for common mappings, and retained regexes for
+  repeated matching; see the text references below.
+- Use Core time amounts and `el::TimePoint` instead of `std::chrono` types. Use `el::Timestamp` for compact instant
+  storage and `el::DateTime` for calendar calculations and time zones; read [time types](references/time.md).
 - Use `el::FifoCache` or `el::LruCache` for bounded caching before implementing a custom eviction container.
 - Keep required standard-library and native conversions at boundaries, outside processing loops where possible.
-- Keep sequence coordinates in matching unit types: `el::ByteIndex` / `el::ByteCount`, `el::CpIndex` / `el::CpCount`,
-  `el::U16Index` / `el::U16Count`, `el::ItemIndex` / `el::ItemCount`, and their offset/range types. Use typed arithmetic
-  and named intent conversions. Construct numeric constants directly; use `fromInteger()` / `fromIntegerOrThrow()`
-  or the size factories for runtime integers.
+- Keep sequence coordinates in matching index/count/offset/range types, such as `el::ByteIndex` / `el::ByteCount`.
+  Use typed arithmetic and named intent conversions. Construct constants directly; use `fromInteger()` /
+  `fromIntegerOrThrow()` or size factories for runtime integers. See [unit types](references/unit-types.md).
 
 ## Detect Core: take the usual path first
 
@@ -61,12 +59,8 @@ With the `erbsland_knowledge` MCP server:
 - Compare related symbols only when their trade-offs matter. Check freshness or versions when a result conflicts
   with the dependency, and confirm against its headers; a missing search result does not prove an API is absent.
 
-Without usable indexed evidence, search inside the dependency's relevant domain with `rg`, for example:
-
-```sh
-rg -n 'split|separator|shared slice' doc/topics/text_strings doc/reference/text
-rg -n 'StringSplitter|StringJoins|join|replacedAll' src/erbsland/text
-```
+Without usable indexed evidence, use `rg` in the dependency's relevant `src/erbsland/<domain>`, `doc/topics`, and
+`doc/reference` directories.
 
 Follow aliases, base classes, and included template implementations. `String` aliases `U8String`; the short alias
 header alone does not expose its methods. Verify Core naming and units instead of assuming standard-library interfaces:
@@ -74,6 +68,8 @@ header alone does not expose its methods. Verify Core naming and units instead o
 
 ## Read the reference for the current decision
 
+- Time amounts, elapsed measurements, deadlines, stored instants, calendar arithmetic, time zones, or epoch
+  conversions: [time types](references/time.md), before choosing types or implementing time calculations.
 - Choosing sequence units, converting indexes/counts/offsets, handling ranges, writing indexed loops, or
   constructing versions: [unit types](references/unit-types.md), including constant versus runtime construction,
   saturation, special states, and native API boundaries.

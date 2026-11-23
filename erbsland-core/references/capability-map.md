@@ -33,10 +33,14 @@ Read [strings](strings.md) for string semantics, examples, and allocation choice
 
 ## Time, files, and data
 
+Read [time types](time.md) to choose amounts, clocks, instants, and deltas before implementing time calculations.
+
 | Task / useful search terms | Start with | Local documentation |
 | --- | --- | --- |
+| Typed time amounts, unit conversion, delay parameters | `el::Nanoseconds`, `el::Milliseconds`, `el::Seconds`, etc. from `<erbsland/TimeAmounts.hpp>` | `doc/topics/time/working_with_time_amounts.rst` |
 | Calendar date, daily clock, local zone, ISO output | `el::Date`, `el::Time`, `el::DateTime`, `el::TimeZone`, `el::TimeWithZone` | `doc/topics/time/overview.rst` |
-| Record an instant, fixed duration, calendar changes | `el::Timestamp`, `el::Duration`, `el::TimeDelta`, `el::CalendarDelta` | `doc/topics/time/`; `doc/reference/time/` |
+| Compact instant storage, UTC conversion, epochs | `el::Timestamp`; convert to `el::DateTime` for calendar/zone work | `doc/topics/time/working_with_timestamps.rst` |
+| Precise short interval, long whole-second interval, calendar change | `el::TimeDelta`, `el::Duration`, `el::CalendarDelta`, respectively | `doc/topics/time/working_with_time_deltas.rst`; `doc/topics/time/working_with_durations.rst` |
 | Measure elapsed time, deadline, processing budget | `el::ElapsedTimer`, `el::TimePoint` | `doc/topics/time/measuring_elapsed_time.rst`; `doc/topics/time/working_with_monotonic_time_points.rst` |
 | Paths, metadata, whole-file content, traversal, file operations | `el::Path`: `info()`, `content()`, `walker()`, `operations()` | `doc/topics/path/overview.rst` |
 | Byte I/O, text I/O, encoding boundary, buffering, timeout | `el::ByteInputStream`, `el::ByteOutputStream`, `el::TextInputStream`, `el::TextOutputStream` | `doc/topics/stream/overview.rst` |

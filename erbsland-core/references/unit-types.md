@@ -4,7 +4,8 @@ Read this when choosing sequence coordinates, doing index arithmetic, iterating 
 between Core units and an external API, or constructing versions. Keep values typed throughout processing; do
 not extract raw integers just to do arithmetic or change an index into a count.
 
-Time quantities use separate contracts. Paths in the verification section are relative to the Core dependency.
+Time quantities use separate contracts; read [time types](time.md) for amounts and deltas.
+Paths in the verification section are relative to the Core dependency.
 
 ## Choose both the unit and the intent
 
